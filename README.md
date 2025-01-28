@@ -1,5 +1,5 @@
 ## Hotel Reservation with AI
-[![Turkish](https://img.shields.io/badge/Dil-Türkçe-blue)](https://github.com/MuratZGunes/HotelBookingWithAi/blob/main/README_TR.md)  
+[![Turkish](https://img.shields.io/badge/Dil-Türkçe-blue)](https://github.com/MuratZGunes/AI-Hotel-Booking-With-Django/blob/main/README_TR.md)  
 HotelBookingWithAI is an innovative web application designed to accelerate, simplify, and provide a personalized experience for hotel reservations. Built on the Django framework, this system effectively offers functionalities such as browsing hotel rooms, managing reservations, and editing user profiles through a user-friendly interface.
 
 This project aims not only to enhance users' accommodation experiences but also to provide hotel managers with an efficient and functional infrastructure. With its comprehensive features, it is designed as a modern solution that effectively meets the needs of both users and businesses.
