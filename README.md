@@ -67,7 +67,7 @@ AI solutions are powered by **Gemini.ai** tools. Chatbot and sentiment analysis 
 <img src="https://github.com/user-attachments/assets/4d2a7ea8-a1f0-40a8-b41d-75a9c5a52311" alt="AI Chat Assistant Screenshot" width="250"/>
 
 ### AI Review Analysis
-![AI Review Analysis Screenshot](https://github.com/user-attachments/assets/5d7c23d7-c738-4d11-91ec-7b4fea86c153)
+<img src="https://github.com/user-attachments/assets/2cecabe8-83a2-4b7a-a179-9bb8beca55a5" alt="Web Rooms Page Screenshot" width="700"/>
 
 ### Web Rooms Page
 ![Web Rooms Page Screenshot](https://github.com/user-attachments/assets/dcc2d37b-7228-41f3-8f94-ce8d770cb60c)
