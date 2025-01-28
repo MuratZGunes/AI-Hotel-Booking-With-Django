@@ -1,0 +1,25 @@
+[
+    {
+        "model": "hotel_booking.amenity",
+        "pk": 1,
+        "fields": {
+            "name": "Wi-Fi",
+            "icon": "fas fa-wifi"
+        }
+    },
+    {
+        "model": "hotel_booking.room",
+        "pk": 1,
+        "fields": {
+            "name": "Deluxe Room",
+            "description": "A luxurious room with all amenities",
+            "price": "100.00",
+            "room_type": "double",
+            "capacity": 2,
+            "floor": 1,
+            "has_balcony": true,
+            "has_sea_view": true,
+            "amenities": [1]
+        }
+    }
+] 
