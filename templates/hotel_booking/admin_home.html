@@ -1,0 +1,408 @@
+{% extends 'hotel_booking/admin/admin_base.html' %} 
+
+{% block admin_content %}
+<style>
+  .avatar-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .bg-info-light {
+    background-color: rgba(23, 162, 184, 0.1);
+  }
+  .bg-warning-light {
+    background-color: rgba(255, 193, 7, 0.1);
+  }
+</style>
+
+<div class="container-fluid py-4">
+  <!-- Başlık ve Tarih -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="mb-1">Kontrol Paneli</h2>
+      <p class="text-muted mb-0">
+        <i class="fas fa-calendar-day mr-2"></i>
+        {{ today|date:"d F Y, l" }}
+      </p>
+    </div>
+    <div class="btn-group">
+      <a href="{% url 'add_room' %}" class="btn btn-primary">
+        <i class="fas fa-plus-circle mr-2"></i>
+        Yeni Oda Ekle
+      </a>
+      <a href="{% url 'view_bookings' %}" class="btn btn-outline-primary">
+        <i class="fas fa-list mr-2"></i>
+        Tüm Rezervasyonlar
+      </a>
+    </div>
+  </div>
+
+  <!-- İstatistik Kartları -->
+  <div class="row">
+    <div class="col-xl-3 col-md-6 mb-4">
+      <div class="card border-left-primary shadow h-100 py-2 position-relative overflow-hidden">
+        <div class="card-body">
+          <div class="row no-gutters align-items-center">
+            <div class="col mr-2">
+              <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                Toplam Oda
+              </div>
+              <div class="h3 mb-0 font-weight-bold text-gray-800">
+                {{ rooms.count }}
+              </div>
+            </div>
+            <div class="col-auto">
+              <i class="fas fa-bed fa-3x text-black-50 opacity-25"></i>
+            </div>
+          </div>
+        </div>
+        <div class="progress" style="height: 4px;">
+          <div class="progress-bar bg-primary" style="width: 100%"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+      <div class="card border-left-success shadow h-100 py-2 position-relative overflow-hidden">
+        <div class="card-body">
+          <div class="row no-gutters align-items-center">
+            <div class="col mr-2">
+              <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                Aktif Rezervasyon
+              </div>
+              <div class="h3 mb-0 font-weight-bold text-gray-800">
+                {{ active_bookings_count }}
+              </div>
+            </div>
+            <div class="col-auto">
+              <i class="fas fa-calendar-check fa-3x text-black-50 opacity-25"></i>
+            </div>
+          </div>
+        </div>
+        <div class="progress" style="height: 4px;">
+          <div class="progress-bar bg-success" style="width: 100%"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+      <div class="card border-left-info shadow h-100 py-2 position-relative overflow-hidden">
+        <div class="card-body">
+          <div class="row no-gutters align-items-center">
+            <div class="col mr-2">
+              <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                Bugün Giriş
+              </div>
+              <div class="h3 mb-0 font-weight-bold text-gray-800">
+                {{ today_checkins }}
+              </div>
+            </div>
+            <div class="col-auto">
+              <i class="fas fa-sign-in-alt fa-3x text-black-50 opacity-25"></i>
+            </div>
+          </div>
+        </div>
+        <div class="progress" style="height: 4px;">
+          <div class="progress-bar bg-info" style="width: 100%"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+      <div class="card border-left-warning shadow h-100 py-2 position-relative overflow-hidden">
+        <div class="card-body">
+          <div class="row no-gutters align-items-center">
+            <div class="col mr-2">
+              <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                Bugün Çıkış
+              </div>
+              <div class="h3 mb-0 font-weight-bold text-gray-800">
+                {{ today_checkouts }}
+              </div>
+            </div>
+            <div class="col-auto">
+              <i class="fas fa-sign-out-alt fa-3x text-black-50 opacity-25"></i>
+            </div>
+          </div>
+        </div>
+        <div class="progress" style="height: 4px;">
+          <div class="progress-bar bg-warning" style="width: 100%"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bugünkü Giriş/Çıkış Özeti -->
+  <div class="row mb-4">
+    <div class="col-md-6">
+      <div class="card shadow h-100">
+        <div class="card-header bg-gradient-info text-white d-flex justify-content-between align-items-center py-3">
+          <h6 class="m-0 font-weight-bold">
+            <i class="fas fa-sign-in-alt mr-2"></i>
+            Bugün Giriş Yapacak Misafirler
+          </h6>
+          <span class="badge badge-light font-weight-bold">{{ todays_checkins|length }} Misafir</span>
+        </div>
+        <div class="card-body p-0">
+          {% if todays_checkins %}
+            <div class="list-group list-group-flush">
+              {% for booking in todays_checkins %}
+                <div class="list-group-item list-group-item-action">
+                  <div class="row align-items-center">
+                    <div class="col-auto">
+                      <div class="avatar-circle bg-info-light">
+                        <i class="fas fa-user text-info"></i>
+                      </div>
+                    </div>
+                    <div class="col">
+                      <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                          <h6 class="mb-1 font-weight-bold">{{ booking.user.get_full_name }}</h6>
+                          <div class="d-flex align-items-center">
+                            <span class="badge badge-soft-primary rounded-pill mr-2">
+                              <i class="fas fa-bed text-primary mr-1"></i>
+                              {{ booking.room.name }}
+                            </span> &nbsp;
+                            <small class="text-muted ml-2">
+                              <i class="fas fa-clock mr-1"></i>
+                              {{ booking.check_in|time:"H:i" }}
+                            </small>
+                          </div>
+                        </div>
+                        <div class="btn-group">
+                          <a href="{% url 'approve_booking' booking.id %}" class="btn btn-sm btn-outline-info">
+                            <i class="fas fa-eye mr-1"></i>
+                            Detay
+                          </a>
+                          <button onclick="window.location.href='mailto:{{ booking.user.email }}'" class="btn btn-sm btn-outline-info">
+                            <i class="fas fa-envelope mr-1"></i>
+                            İletişim
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="text-center py-4">
+              <i class="fas fa-info-circle text-info fa-2x mb-3"></i>
+              <p class="text-muted mb-0">Bugün giriş yapacak misafir bulunmamaktadır.</p>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card shadow h-100">
+        <div class="card-header bg-gradient-warning text-white d-flex justify-content-between align-items-center py-3">
+          <h6 class="m-0 font-weight-bold">
+            <i class="fas fa-sign-out-alt mr-2"></i>
+            Bugün Çıkış Yapacak Misafirler
+          </h6>
+          <span class="badge badge-light font-weight-bold">{{ todays_checkouts|length }} Misafir</span>
+        </div>
+        <div class="card-body p-0">
+          {% if todays_checkouts %}
+            <div class="list-group list-group-flush">
+              {% for booking in todays_checkouts %}
+                <div class="list-group-item list-group-item-action">
+                  <div class="row align-items-center">
+                    <div class="col-auto">
+                      <div class="avatar-circle bg-warning-light">
+                        <i class="fas fa-user text-warning"></i>
+                      </div>
+                    </div>
+                    <div class="col">
+                      <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                          <h6 class="mb-1 font-weight-bold">{{ booking.user.get_full_name }}</h6>
+                          <div class="d-flex align-items-center">
+                            <span class="badge badge-soft-primary rounded-pill mr-2">
+                              <i class="fas fa-bed text-primary mr-1"></i>
+                              {{ booking.room.name }}
+                            </span> &nbsp;
+                            <small class="text-muted ml-2">
+                              <i class="fas fa-clock mr-1"></i>
+                              {{ booking.check_out|time:"H:i" }}
+                            </small>
+                          </div>
+                        </div>
+                        <div class="btn-group">
+                          <a href="{% url 'approve_booking' booking.id %}" class="btn btn-sm btn-outline-warning">
+                            <i class="fas fa-eye mr-1"></i>
+                            Detay
+                          </a>
+                          <button onclick="window.location.href='mailto:{{ booking.user.email }}'" class="btn btn-sm btn-outline-warning">
+                            <i class="fas fa-envelope mr-1"></i>
+                            İletişim
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="text-center py-4">
+              <i class="fas fa-info-circle text-warning fa-2x mb-3"></i>
+              <p class="text-muted mb-0">Bugün çıkış yapacak misafir bulunmamaktadır.</p>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Son Onaylanan Rezervasyonlar -->
+  <div class="card shadow mb-4">
+    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+      <h6 class="m-0 font-weight-bold text-primary">
+        <i class="fas fa-clipboard-list mr-2"></i>
+        Son Onaylanan Rezervasyonlar
+      </h6>
+      <a href="{% url 'view_bookings' %}" class="btn btn-sm btn-primary">
+        <i class="fas fa-list mr-2"></i>
+        Tüm Rezervasyonlar
+      </a>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead class="thead-light">
+            <tr>
+              <th>Oda</th>
+              <th>Misafir</th>
+              <th>Giriş</th>
+              <th>Çıkış</th>
+              <th>Durum</th>
+              <th class="text-right">İşlemler</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for booking in bookings|slice:":10" %}
+            <tr> 
+              <td> 
+                <i class="fas fa-bed text-primary mr-2"></i> &nbsp;
+                 {{ booking.room.name }}
+              </td> 
+              <td>
+                <i class="fas fa-user text-warning mr-2"></i>
+                {{ booking.user.get_full_name }}
+              </td>
+              <td>
+                <i class="fas fa-calendar-alt text-success mr-2"></i>
+                {{ booking.check_in }}
+              </td>
+              <td>
+                <i class="fas fa-calendar-alt text-danger mr-2"></i>
+                {{ booking.check_out }}
+              </td>
+              <td>
+                <span class="badge badge-pill fw-bold {% if booking.status == 'confirmed' %}bg-soft-success text-success{% elif booking.status == 'pending' %}bg-soft-warning text-warning{% else %}bg-soft-danger text-danger{% endif %}">
+                  <i class="fas {% if booking.status == 'confirmed' %}fa-check-circle{% elif booking.status == 'pending' %}fa-clock{% else %}fa-times-circle{% endif %} mr-1"></i>
+                  {% if booking.status == 'confirmed' %}
+                    Onaylandı
+                  {% elif booking.status == 'pending' %}
+                    Beklemede
+                  {% else %}
+                    İptal Edildi
+                  {% endif %}
+                </span>
+              </td>
+              <td class="text-right">
+                <div class="btn-group btn-group-sm">
+                  <a href="{% url 'approve_booking' booking.id %}" class="btn btn-outline-primary" title="Detaylar">
+                    <i class="fas fa-eye"></i>
+                  </a>
+                  <button onclick="window.location.href='mailto:{{ booking.user.email }}'" class="btn btn-outline-info" title="E-posta">
+                    <i class="fas fa-envelope"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="6" class="text-center py-5">
+                <i class="fas fa-info-circle text-info fa-2x mb-3"></i>
+                <p class="text-muted mb-0">Henüz onaylanmış rezervasyon bulunmamaktadır.</p>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock admin_content %}
+
+{% block extra_css %}
+<style>
+  .opacity-25 { opacity: 0.25; }
+  .bg-soft-success {
+    background-color: rgba(40, 167, 69, 0.15) !important;
+  }
+  .bg-soft-warning {
+    background-color: rgba(255, 193, 7, 0.15) !important;
+  }
+  .bg-soft-danger {
+    background-color: rgba(220, 53, 69, 0.15) !important;
+  }
+  .badge-soft-primary {
+    color: #4e73df;
+    background-color: rgba(78, 115, 223, 0.15);
+    border: 1px solid rgba(78, 115, 223, 0.2);
+  }
+  .rounded-pill {
+    border-radius: 50rem !important;
+  }
+  .badge {
+    font-weight: 600 !important;
+    padding: 0.5em 1em;
+  }
+  .badge i {
+    font-size: 0.9em;
+  }
+  .bg-gradient-info {
+    background: linear-gradient(45deg, #36b9cc, #1cc88a);
+  }
+  .bg-gradient-warning {
+    background: linear-gradient(45deg, #f6c23e, #e74a3b);
+  }
+  .card {
+    transition: transform 0.2s;
+  }
+  .card:hover {
+    transform: translateY(-2px);
+  }
+  .list-group-item-action:hover {
+    background-color: #f8f9fc;
+  }
+  .badge-pill {
+    padding-right: 1em;
+    padding-left: 1em;
+  }
+</style>
+{% endblock extra_css %}
+
+{% block extra_js %}
+<script>
+$(function() {
+  // Tooltip'leri etkinleştir
+  $('[title]').tooltip();
+  
+  // Tablo satırlarına hover efekti
+  $('.table tbody tr').hover(
+    function() { $(this).addClass('bg-light'); },
+    function() { $(this).removeClass('bg-light'); }
+  );
+});
+</script>
+{% endblock extra_js %}

@@ -1,0 +1,32 @@
+Sevgili {{ booking.user.get_full_name }},
+
+Bu, otelimizdeki yaklaşan konaklamanızla ilgili bir hatırlatmadır.
+
+Girişiniz yarın! 
+
+Rezervasyon Detayları:
+---------------------
+Oda: {{ booking.room.name }}
+Giriş Tarihi: {{ booking.check_in }}
+Çıkış Tarihi: {{ booking.check_out }}
+
+Önemli Bilgiler:
+----------------
+- Lütfen geçerli bir kimlik ve rezervasyon için kullandığınız kredi kartını yanınızda getirin
+- Tesiste ücretsiz otopark mevcuttur
+
+Oda Özellikleri:
+----------------
+{% for amenity in booking.room.amenities.all %}- {{ amenity.name }}
+{% endfor %}
+
+Rezervasyonunuzu değiştirmek mi istiyorsunuz?
+Lütfen şu linki ziyaret edin: {{ site_url }}{% url 'profile' %}
+
+Sizi ağırlamayı dört gözle bekliyoruz!
+
+Saygılarımızla,  
+Otel Rezervasyon Ekibi
+
+Not: Bu, otomatik bir mesajdır, lütfen yanıtlamayınız.  
+© {{ year }} Otel Rezervasyon Sistemi. Tüm hakları saklıdır.

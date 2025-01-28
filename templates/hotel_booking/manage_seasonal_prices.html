@@ -1,0 +1,227 @@
+{% extends 'hotel_booking/admin/admin_base.html' %}
+{% load static %}
+
+{% block admin_content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col d-flex justify-content-between align-items-center">
+            <h2 class="text-primary fw-bold mb-0">
+                <i class="fas fa-calendar-alt me-2"></i>
+                Sezonluk Fiyat Yönetimi
+            </h2>
+            {% if selected_room %}
+            <a href="{% url 'manage_seasonal_prices' %}" class="btn btn-primary btn-lg">
+                <i class="fas fa-arrow-left me-2"></i>
+                Tüm Odalara Geri Dön
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Oda Seçimi -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0"><i class="fas fa-bed me-2"></i>Oda Seçimi</h5>
+        </div>
+        <div class="card-body">
+            <div class="row g-4">
+                {% for room in rooms %}
+                {% if not selected_room or selected_room.id == room.id %}
+                <div class="{% if selected_room %}col-md-6 mx-auto{% else %}col-md-3{% endif %}">
+                    <div class="card h-100 {% if selected_room.id == room.id %}border-primary{% else %}border-0{% endif %} shadow-sm hover-shadow">
+                        {% if room.image %}
+                        <img src="{{ room.image.url }}" class="card-img-top" alt="{{ room.name }}" style="height: {% if selected_room %}300px{% else %}150px{% endif %}; object-fit: cover;">
+                        {% endif %}
+                        <div class="card-body">
+                            <h6 class="card-title fw-bold {% if selected_room %}h5{% endif %}">
+                                <a href="{% url 'room_details' room.id %}" class="text-decoration-none text-dark">
+                                    {{ room.name }}
+                                </a>
+                            </h6>
+                            {% if room.avg_rating %}
+                            <div class="mb-2">
+                                {% for i in "12345"|make_list %}
+                                {% with number=forloop.counter|add:"-0.5" %}
+                                {% if forloop.counter <= room.avg_rating %}
+                                <i class="fas fa-star text-warning"></i>
+                                {% elif number <= room.avg_rating %}
+                                <i class="fas fa-star-half-alt text-warning"></i>
+                                {% else %}
+                                <i class="far fa-star text-warning"></i>
+                                {% endif %}
+                                {% endwith %}
+                                {% endfor %}
+                                <small class="text-muted ms-1">({{ room.avg_rating|floatformat:1 }} - {{ room.review_count }} yorum)</small>
+                            </div>
+                            {% endif %}
+                            <p class="card-text mb-3">
+                                <span class="badge bg-light text-dark">
+                                    <i class="fas fa-tag me-1"></i>
+                                    Normal Fiyat: {{ room.price }} TL
+                                </span>
+                            </p>
+                            {% if not selected_room %}
+                            <a href="{% url 'manage_seasonal_prices' room_id=room.id %}" 
+                               class="btn btn-outline-primary w-100">
+                                <i class="fas fa-cog me-1"></i>
+                                Fiyatları Yönet
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    {% if selected_room %}
+    <div class="row">
+        <div class="col-md-5">
+            <!-- Yeni Sezonluk Fiyat Ekleme Formu -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-plus-circle me-2"></i>
+                        Yeni Sezonluk Fiyat - {{ selected_room.name }}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        <input type="hidden" name="room" value="{{ selected_room.id }}">
+                        <div class="mb-3">
+                            <label for="start_date" class="form-label">
+                                <i class="far fa-calendar-alt me-1"></i>
+                                Başlangıç Tarihi
+                            </label>
+                            <input type="date" class="form-control" id="start_date" name="start_date" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="end_date" class="form-label">
+                                <i class="far fa-calendar-alt me-1"></i>
+                                Bitiş Tarihi
+                            </label>
+                            <input type="date" class="form-control" id="end_date" name="end_date" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="price" class="form-label">
+                                <i class="fas fa-money-bill-wave me-1"></i>
+                                Fiyat
+                            </label>
+                            <div class="input-group">
+                                <input type="number" step="0.01" class="form-control" id="price" name="price" required>
+                                <span class="input-group-text">TL</span>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-success w-100">
+                            <i class="fas fa-plus-circle me-1"></i>
+                            Sezonluk Fiyat Ekle
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-7">
+            <!-- Mevcut Sezonluk Fiyatlar -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list me-2"></i>
+                        Mevcut Sezonluk Fiyatlar
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if seasonal_prices %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th><i class="far fa-calendar-alt me-1"></i>Başlangıç</th>
+                                    <th><i class="far fa-calendar-alt me-1"></i>Bitiş</th>
+                                    <th><i class="fas fa-lira-sign me-1"></i>Fiyat</th>
+                                    <th>İşlemler</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for price in seasonal_prices %}
+                                <tr>
+                                    <td>{{ price.start_date }}</td>
+                                    <td>{{ price.end_date }}</td>
+                                    <td>{{ price.price }} TL</td>
+                                    <td>
+                                        <form method="post" action="{% url 'delete_seasonal_price' price_id=price.id %}" class="d-inline">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-danger btn-sm" 
+                                                    onclick="return confirm('Bu sezonluk fiyatı silmek istediğinizden emin misiniz?')">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-info-circle text-info fa-2x mb-3"></i>
+                        <p class="text-muted mb-0">Bu oda için henüz sezonluk fiyat tanımlanmamış.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="alert alert-info d-flex align-items-center" role="alert">
+        <i class="fas fa-info-circle me-2"></i>
+        <div>
+            Lütfen sezonluk fiyatlarını yönetmek için bir oda seçin.
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Tarih alanları için minimum değerleri ayarla
+    const today = new Date().toISOString().split('T')[0];
+    const startDateInput = document.getElementById('start_date');
+    const endDateInput = document.getElementById('end_date');
+    
+    [startDateInput, endDateInput].forEach(input => input.min = today);
+
+    // Başlangıç tarihi değiştiğinde bitiş tarihinin minimumunu güncelle
+    startDateInput.addEventListener('change', function() {
+        endDateInput.min = this.value;
+        if (endDateInput.value < this.value) {
+            endDateInput.value = this.value;
+        }
+    });
+
+    // Form doğrulama
+    document.querySelectorAll('.needs-validation').forEach(form => {
+        form.addEventListener('submit', event => {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        });
+    });
+});
+</script>
+
+<style>
+.hover-shadow {
+    transition: transform 0.3s ease;
+}
+.hover-shadow:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 .5rem 1rem rgba(0,0,0,.15);
+}
+</style>
+{% endblock %} 

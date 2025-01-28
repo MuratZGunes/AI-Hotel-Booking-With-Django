@@ -1,0 +1,145 @@
+{% extends 'hotel_booking/base.html' %}
+{% load widget_tweaks %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row g-3">
+        <!-- Profile Information -->
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 rounded-3">
+                <div class="card-header py-2" style="background: linear-gradient(45deg, #1a237e, #283593)">
+                    <h5 class="mb-0 text-white">
+                        <i class="fas fa-user-circle me-2"></i>
+                        Profil Bilgileri
+                    </h5>
+                </div>
+                <div class="card-body p-3">
+                    <form method="post">
+                        {% csrf_token %}
+                        {% for field in form %}
+                        <div class="mb-3">
+                            <label class="form-label small text-uppercase">{{ field.label }}</label>
+                            {% render_field field class="form-control border bg-light" placeholder=field.label %}
+                            {% if field.help_text %}
+                            <small class="form-text text-muted">
+                                <i class="fas fa-info-circle me-1"></i>
+                                {{ field.help_text }}
+                            </small>
+                            {% endif %}
+                            {% if field.errors %}
+                            <div class="alert alert-danger mt-2 p-2 small">
+                                {{ field.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                        <div class="text-end">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i>
+                                Güncelle
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bookings -->
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0 rounded-3">
+                <div class="card-header py-2" style="background: linear-gradient(45deg, #2e7d32, #388e3c)">
+                    <h5 class="mb-0 text-white">
+                        <i class="fas fa-calendar-check me-2"></i>
+                        Rezervasyonlarım
+                    </h5>
+                </div>
+                <div class="card-body p-3">
+                    {% if user.booking_set.all %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead>
+                                <tr class="bg-light">
+                                    <th>Oda</th>
+                                    <th>Giriş</th>
+                                    <th>Çıkış</th>
+                                    <th>Toplam</th>
+                                    <th>Durum</th>
+                                    <th>İşlem</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for booking in user.booking_set.all %}
+                                <tr>
+                                    <td>{{ booking.room.name }}</td>
+                                    <td>{{ booking.check_in }}</td>
+                                    <td>{{ booking.check_out }}</td>
+                                    <td>{{ booking.total_cost }} TL</td>
+                                    <td>
+                                        <span class="badge {% if booking.status == 'confirmed' %}bg-success{% elif booking.status == 'pending' %}bg-warning{% else %}bg-danger{% endif %}">
+                                            {% if booking.status == 'confirmed' %}Onaylı{% elif booking.status == 'pending' %}Beklemede{% else %}İptal{% endif %}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if booking.status == 'pending' %}
+                                        <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#confirmCancelModal{{ booking.id }}">
+                                            İptal
+                                        </button>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+
+                                <!-- Modal -->
+                                <div class="modal fade" id="confirmCancelModal{{ booking.id }}" tabindex="-1">
+                                    <div class="modal-dialog modal-sm modal-dialog-centered">
+                                        <div class="modal-content">
+                                            <div class="modal-header py-2">
+                                                <h6 class="modal-title">Rezervasyon İptali</h6>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                İptal etmek istediğinizden emin misiniz?
+                                            </div>
+                                            <div class="modal-footer py-1">
+                                                <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Hayır</button>
+                                                <a href="{% url 'cancel_booking' booking.id %}" class="btn btn-sm btn-danger">Evet</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-calendar-times fa-3x text-muted mb-2"></i>
+                        <p class="text-muted mb-3">Henüz rezervasyonunuz bulunmuyor.</p>
+                        <a href="{% url 'available_rooms' %}" class="btn btn-primary">
+                            <i class="fas fa-search me-1"></i>
+                            Odalara Göz At
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.form-control:focus {
+    box-shadow: none;
+    border-color: #1a237e;
+}
+.table th {
+    font-size: 0.9rem;
+    white-space: nowrap;
+}
+.table td {
+    font-size: 0.85rem;
+}
+.badge {
+    font-size: 0.8rem;
+}
+</style>
+{% endblock %} 

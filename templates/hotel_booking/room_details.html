@@ -1,0 +1,303 @@
+{% extends 'hotel_booking/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+    /* Diğer stiller */
+    .rating {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="row">
+    <!-- Room Details -->
+    <div class="col-md-8">
+      <div class="card mb-4">
+        {% if room.image %}
+        <img
+          src="{{ room.image.url }}"
+          class="card-img-top"
+          alt="{{ room.name }}"
+        />
+        {% endif %}
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="card-title">{{ room.name }}</h2>
+            {% if avg_rating %}
+            <div class="rating">
+              <div class="d-flex align-items-center">
+                {% for i in "12345"|make_list %}
+                {% with number=forloop.counter|add:"-0.5" %}
+                {% if forloop.counter <= avg_rating %}
+                <i class="fas fa-star text-warning"></i>
+                {% elif number <= avg_rating %}
+                <i class="fas fa-star-half-alt text-warning"></i>
+                {% else %}
+                <i class="far fa-star text-warning"></i>
+                {% endif %}
+                {% endwith %}
+                {% endfor %}
+                <span class="ms-2 text-muted">{{ avg_rating|floatformat:1 }}/5 
+              ({{ reviews.count }} değerlendirme)</span>
+              </div>
+            </div>
+            {% endif %}
+          </div>
+          <p class="card-text">
+            {{ room.description }}
+            {% if avg_rating %}
+            <br><br>
+
+            {% endif %}
+          </p>
+
+          <h4 class="mt-4">Oda Özellikleri</h4>
+          <div class="row">
+            <div class="col-md-6">
+              <ul class="list-unstyled">
+                <li>
+                  <i class="fas fa-bed"></i> {{ room.get_room_type_display }}
+                </li>
+                <li>
+                  <i class="fas fa-user-friends"></i> Kapasite: {{ room.capacity }} kişi
+                </li>
+                <li><i class="fas fa-building"></i> Kat: {{ room.floor }}</li>
+              </ul>
+            </div>
+            <div class="col-md-6">
+              <ul class="list-unstyled">
+                {% if room.has_balcony %}
+                <li><i class="fas fa-door-open"></i> Balkon</li>
+                {% endif %} {% if room.has_sea_view %}
+                <li><i class="fas fa-water"></i> Deniz Manzarası</li>
+                {% endif %}
+              </ul>
+            </div>
+          </div>
+
+          <h4 class="mt-4">Özellikleri</h4>
+          <div class="row">
+            {% for amenity in room.amenities.all %}
+            <div class="col-md-4 mb-2">
+              <i class="{{ amenity.icon }}"></i> {{ amenity.name }}
+            </div>
+            {% endfor %}
+          </div>
+
+          <div class="price-section mt-4">
+            <h3 class="text-primary">
+              {% if room.current_price != room.price %}
+                {% if room.current_price < room.price %}
+                  <span class="text-decoration-line-through text-muted" style="font-size: 0.8em;">{{ room.price }} TL</span>
+                  <span class="text-danger">{{ room.current_price }} TL</span>
+                {% else %}
+                  <span>{{ room.current_price }} TL</span>
+                {% endif %}
+              {% else %}
+                {{ room.price }} TL
+              {% endif %}
+              <small class="text-muted">Geceliği</small>
+            </h3>
+          </div>
+
+          {% if user.is_authenticated %}
+          <div class="booking-section mt-4">
+            <a
+              href="{% url 'book_room' room.id %}"
+              class="btn btn-primary btn-lg"
+              >Şimdi Rezervasyon Yapın</a
+            >
+          </div>
+          {% else %}
+          <div class="booking-section mt-4">
+            <a href="{% url 'user_login' %}" class="btn btn-danger btn-lg"
+              >Rezervasyon İçin Giriş Yapın</a
+            >
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Reviews Section -->
+      <div class="card">
+        <div
+          class="card-header d-flex justify-content-between align-items-center"
+        >
+          <h3 class="mb-0">Yorumlar</h3>
+          {% if user.is_authenticated %}
+          <a href="{% url 'add_review' room.id %}" class="btn btn-primary"
+            >Bir Yorum Yazın</a
+          >
+          {% endif %}
+        </div>
+        <div class="card-body">
+          {% if reviews %} {% if ai_analysis %}
+          <!-- AI Analysis Card -->
+          <div class="card bg-light mb-4 border-0">
+            <div class="card-body">
+              <div class="d-flex align-items-center mb-2">
+                <i class="fas fa-robot text-primary me-2"></i>
+                <h5 class="mb-0">AI Yorum Analizi</h5>
+                <span class="badge bg-primary ms-2">Yapay Zeka</span>
+              </div>
+              <div class="d-flex align-items-center mb-2">
+                <div class="rating me-2">
+                  {% for i in "12345"|make_list %}
+                  <span
+                    class="{% if forloop.counter <= avg_rating %}text-warning{% else %}text-muted{% endif %}"
+                    >★</span
+                  >
+                  {% endfor %}
+                </div>
+                <span class="text-muted">({{ reviews.count }} yorum)</span>
+              </div>
+              <p class="mb-0">{{ ai_analysis }}</p>
+            </div>
+          </div>
+          {% endif %}
+
+          <!-- Existing Reviews -->
+          {% for review in reviews %}
+          <div class="review-item mb-4">
+            <div class="d-flex justify-content-between">
+              <h5>
+                {{ review.user.get_full_name|default:review.user.username }}
+              </h5>
+              <div class="rating">
+                {% for i in "12345"|make_list %}
+                <span
+                  class="{% if forloop.counter <= review.rating %}text-warning{% else %}text-muted{% endif %}"
+                  >★</span
+                >
+                {% endfor %}
+              </div>
+            </div>
+            <p class="text-muted small">
+              {{ review.created_at|date:"F d, Y" }}
+            </p>
+            <p>{{ review.comment }}</p>
+            <hr />
+          </div>
+          {% endfor %} {% else %}
+          <p class="text-muted">Henüz yorum yapılmadı.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    {% if user.is_authenticated %}
+    <!-- Sidebar -->
+    <div class="col-md-4">
+      <!-- Quick Booking Form -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <h4>Hızlı Rezervasyon</h4>
+        </div>
+        <div class="card-body">
+          <form method="post" action="{% url 'book_room' room.id %}">
+            {% csrf_token %}
+            <div class="mb-3">
+              <label for="check_in">Giriş Tarihi</label>
+              <input
+                type="date"
+                class="form-control"
+                id="check_in"
+                name="check_in"
+                required
+              />
+            </div>
+            <div class="mb-3">
+              <label for="check_out">Çıkış Tarihi</label>
+              <input
+                type="date"
+                class="form-control"
+                id="check_out"
+                name="check_out"
+                required
+              />
+            </div>
+            <div class="mb-3">
+              <label for="promo_code">Promosyon Kodu</label>
+              <input
+                type="text"
+                class="form-control"
+                id="promo_code"
+                name="promo_code"
+                placeholder="Promosyon kodunuz varsa giriniz"
+              />
+            </div>
+            <button type="submit" class="btn btn-primary w-100">
+              Şimdi Rezervasyon Yapın
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- İptal Politikası -->
+      <div class="card shadow-lg border-0 rounded-3 mb-4">
+        <div class="card-header bg-primary bg-gradient text-white py-3">
+          <h4 class="mb-0 d-flex align-items-center">
+            <i class="fas fa-info-circle me-2"></i>
+            İptal Politikası
+          </h4>
+        </div>
+        <div class="card-body p-4">
+          <ul class="list-unstyled mb-0">
+            <li class="mb-3 d-flex align-items-center">
+              <span class="badge bg-success rounded-circle p-2 me-2">
+                <i class="fas fa-check"></i>
+              </span>
+              <span class="text-success fw-semibold">
+                Girişten 24 saat öncesine kadar ücretsiz iptal
+              </span>
+            </li>
+            <li class="mb-3 d-flex align-items-center">
+              <span class="badge bg-warning rounded-circle p-2 me-2">
+                <i class="fas fa-check"></i>
+              </span>
+              <span class="text-warning fw-semibold">
+                Girişten 12 saat öncesine kadar %50 ücret iadesi
+              </span>
+            </li>
+            <li class="d-flex align-items-center">
+              <span class="badge bg-danger rounded-circle p-2 me-2">
+                <i class="fas fa-times"></i>
+              </span>
+              <span class="text-danger fw-semibold">
+                Girişe 12 saatten az bir süre kala ücret iadesi yapılmaz
+              </span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    {% else %}
+    <!-- Login to Book -->
+    <div class="col-md-4">
+      <div class="card mb-4">
+        <div class="card-header">
+          <h4>Rezervasyon Yap</h4>
+        </div>
+        <div class="card-body text-center">
+          <p class="mb-4">Bu odayı rezerve etmek için lütfen giriş yapın.</p>
+          <a href="{% url 'user_login' %}" class="btn btn-primary">
+            <i class="fas fa-sign-in-alt me-2"></i>Giriş Yap
+          </a>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

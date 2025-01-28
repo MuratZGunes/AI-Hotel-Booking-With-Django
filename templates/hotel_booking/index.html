@@ -1,0 +1,654 @@
+{% extends 'hotel_booking/base.html' %} {% block content %}
+<!-- Banner Bölümü -->
+<div
+  class="jumbotron text-center text-white py-5 mb-5 shadow-lg rounded-3"
+  style="
+    background-image: url('https://media.istockphoto.com/id/1196520246/tr/foto%C4%9Fraf/lamba-ile-bo%C5%9F-gri-oturma-odas%C4%B1.jpg?s=2048x2048&w=is&k=20&c=ioRETWHHDbXGsmVy9IpE-zfUSi6NvknvG3jWf8tNVPs=');
+    background-size: cover;
+    background-position: center;
+  "
+>
+<style>
+  /* Banner Background */
+  .jumbotron {
+    color: #fff;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Banner Title */
+  .jumbotron h1 {
+    font-size: 3rem;
+    font-weight: bold;
+    text-transform: uppercase;
+  }
+
+  /* Banner Subheading */
+  .jumbotron p {
+    font-size: 1.2rem;
+    color: #f1f1f1;
+  }
+
+  /* Button */
+  .jumbotron .btn {
+    background-color: #ffffff;
+    color: #007bff;
+    border-radius: 30px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+  }
+
+  .jumbotron .btn:hover {
+    background-color: #0056b3;
+    color: #fff;
+    transform: translateY(-3px);
+  }
+
+  /* Animation Styling */
+  .animate__animated {
+    animation-duration: 1s;
+    animation-fill-mode: both;
+  }
+
+  /* Box-shadow for Banner */
+  .shadow-lg {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
+  }
+
+  /* Responsiveness */
+  @media (max-width: 767px) {
+    .jumbotron h1 {
+      font-size: 2rem;
+    }
+    .jumbotron p {
+      font-size: 1rem;
+    }
+  }
+  /* Kart tasarımı */
+.room-card {
+  border-radius: 10px;
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.room-card:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Görsel çerçevesi */
+.room-img-wrapper {
+  position: relative;
+  overflow: hidden;
+  border-radius: 10px 10px 0 0;
+  height: 150px; /* Görsel yüksekliği */
+}
+
+.room-img-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.room-card:hover .room-img-wrapper img {
+  transform: scale(1.1);
+}
+
+/* Kart başlık ve metin */
+.room-card .card-title {
+  font-size: 1rem;
+}
+
+.room-card .card-text {
+  font-size: 0.85rem;
+  margin-bottom: 10px;
+}
+
+/* Buton tasarımı */
+.room-card .btn {
+  font-size: 0.8rem;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+.room-card .btn:hover {
+  background-color: #0056b3;
+  color: #fff;
+}
+
+/* Genel düzen */
+.row.g-3 {
+  row-gap: 1.5rem;
+}
+
+@media (max-width: 576px) {
+  .room-card .btn {
+    font-size: 0.75rem;
+  }
+}
+
+#about {
+  background-color: #f8f9fa;
+}
+
+#about .container {
+  max-width: 1200px;
+}
+
+#about .img-fluid {
+  border-radius: 10px;
+}
+
+#about h2 {
+  color: #007bff;
+}
+
+#about ul {
+  list-style-type: none;
+  padding-left: 0;
+}
+
+#about ul li::before {
+  content: "• ";
+  color: #007bff;
+}
+
+#about h3 {
+  margin-top: 15px;
+}
+</style>
+<!-- Add CSS Animation Library -->
+<link
+  rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"
+/>
+
+  <div class="container">
+    <!-- Ana Başlık -->
+    <h1
+      class="display-4 fw-bold text-uppercase animate__animated animate__fadeIn animate__delay-1s"
+    >
+      Yapay Zekâ ile Kusursuz Konaklama Deneyimi
+    </h1>
+    <!-- Alt başlık -->
+    <p
+      class="lead custom-blue animate__animated animate__fadeIn animate__delay-2s"
+    >
+      Konforun şıklıkla buluştuğu, evinizden uzaktaki eviniz.
+    </p>
+
+    <!-- Action Button -->
+    <a
+      class="btn btn-light btn-lg px-4 py-2 mt-4 shadow animate__animated animate__fadeIn animate__delay-3s"
+      href="{% url 'available_rooms' %}"
+      role="button"
+    >
+      Rezervasyon Yapın
+    </a>
+  </div>
+</div>
+
+<div class="container mt-5">
+
+  <h2 class="text-center mb-4 fw-bold text-secondary">Öne Çıkan Odalarımız</h2>
+  <div class="row g-3">
+    {% for room in top_rated_rooms %}
+    <div class="col-6 col-md-4 col-lg-3">
+      <div class="card room-card shadow-sm border-0">
+        <div class="room-img-wrapper">
+          <a
+            href="{% url 'room_details' room.id %}">
+            <img
+            src="{{ room.image.url }}"
+            class="card-img-top rounded-top"
+            alt="{{ room.name }}"
+            onerror="this.src='https://via.placeholder.com/200x200';"/>
+            </a
+          >
+        </div>
+        <div class="card-body text-center">
+          <h6 class="card-title text-primary fw-bold mb-2">
+            <a
+              href="{% url 'room_details' room.id %}"
+              >{{ room.name }}
+            </a
+          ></h6>
+          <p class="card-text text-muted small">
+            {{ room.description|truncatewords:15 }}
+            {% if room.avg_rating %}
+            <br>
+            <small class="text-warning" style="font-size: 1rem;">
+              <i class="fas fa-star"></i> {{ room.avg_rating|floatformat:1 }}/5
+            </small>
+            {% endif %}
+          </p>
+          <p class="text-muted">
+            <strong>Fiyat:</strong> 
+            {% if room.current_price != room.price %}
+              {% if room.current_price < room.price %}
+                <del>{{ room.price }} TL</del>
+                <strong class="text-danger">{{ room.current_price }} TL</strong>
+              {% else %}
+                {{ room.current_price }} TL
+              {% endif %}
+            {% else %}
+              {{ room.current_price }} TL
+            {% endif %}
+          </p>
+          <a
+            href="{% url 'room_details' room.id %}"
+            class="btn btn-sm btn-primary mt-2 rounded-pill"
+            >Detaylara Bak</a
+          >
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <p class="text-muted">Hiçbir oda mevcut değil.</p>
+    {% endfor %}
+  </div>
+</div>
+
+    <!-- About Us Section -->
+    <section id="about" class="py-5" style="background-color: #f8f9fa">
+      <div class="container">
+        <div class="row">
+          <!-- Section Title -->
+          <div class="col-12 text-center mb-4">
+            <h2 class="display-4" style="font-weight: bold; color: #007bff">
+              Hakkımızda
+            </h2>
+            <p class="lead" style="font-size: 18px; color: #6c757d">
+              Otelimiz ve sunduğumuz hizmetler hakkında daha fazla bilgi edinin.
+            </p>
+          </div>
+        </div>
+
+        <div class="row align-items-center">
+          <!-- Image Section -->
+          <div class="col-md-6 mb-4">
+            <img
+              src="https://cdn.pixabay.com/photo/2021/02/03/00/10/receptionists-5975962_1280.jpg"
+              alt="Hotel Image"
+              class="img-fluid rounded shadow"
+            />
+          </div>
+
+          <!-- Text Section -->
+          <div class="col-md-6">
+            <h3 class="h4" style="font-weight: bold; color: #007bff">
+              Misyonumuz
+            </h3>
+            <p style="font-size: 16px; color: #495057">
+              Çevrimiçi Konaklama ve Deneyim Platformu olarak, misafirlerimize
+              unutulmaz bir deneyim sunmayı hedefliyoruz. İster iş seyahati
+              ister tatil amaçlı yolculuklarınızda, konforlu ve şık odalarımız,
+              üstün hizmet kalitemiz ve akılda kalıcı bir konaklama deneyimiyle
+              yanınızdayız.
+            </p>
+
+            <h3 class="h4" style="font-weight: bold; color: #007bff">
+              Hizmetlerimiz
+            </h3>
+            <ul style="font-size: 16px; color: #495057">
+              <li>İhtiyaçlarınıza uygun geniş oda seçenekleri</li>
+              <li>7/24 müşteri desteği ve danışmanlık hizmetleri</li>
+              <li>Güvenli ödeme seçenekleriyle kolay online rezervasyon</li>
+              <li>Ücretsiz Wi-Fi ve kahvaltı dahil premium olanaklar</li>
+              <li>İş toplantıları ve etkinlikler için özel salonlar</li>
+            </ul>
+
+            <h3 class="h4" style="font-weight: bold; color: #007bff">
+              Neden Bizi Tercih Etmelisiniz?
+            </h3>
+            <p style="font-size: 16px; color: #495057">
+              Müşteri memnuniyeti ve kaliteye olan bağlılığımızla, her
+              misafirimize konforlu ve unutulmaz bir konaklama deneyimi
+              sunuyoruz. Merkezi konumumuz ve dünya standartlarındaki
+              olanaklarımız sayesinde, seyahat edenlerin öncelikli tercihi
+              olmaktan gurur duyuyoruz.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <section class="bg-light py-5">
+      <div class="container text-center">
+        <h2 class="fw-bold mb-5 text-uppercase">Başarılarımız</h2>
+        <div class="row g-4">
+          <!-- Customer Count -->
+          <div class="col-md-4">
+            <div class="counter-box p-4 border rounded shadow-sm">
+              <i class="bi bi-people-fill display-3 text-primary mb-3"></i>
+              <h3 class="display-5 fw-bold">2,100+</h3>
+              <p class="text-muted">Mutlu Müşteriler</p>
+            </div>
+          </div>
+          <!-- Rooms Booked -->
+          <div class="col-md-4">
+            <div class="counter-box p-4 border rounded shadow-sm">
+              <i class="bi bi-door-closed-fill display-3 text-success mb-3"></i>
+              <h3 class="display-5 fw-bold">1200+</h3>
+              <p class="text-muted">Odalar Rezerve Edildi</p>
+            </div>
+          </div>
+          <!-- Positive Reviews -->
+          <div class="col-md-4">
+            <div class="counter-box p-4 border rounded shadow-sm">
+              <i class="bi bi-star-fill display-3 text-warning mb-3"></i>
+              <h3 class="display-5 fw-bold">900+</h3>
+              <p class="text-muted">Olumlu Yorumlar</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Müşteri Yorumları Bölümü -->
+    <section id="testimonials" class="py-5" style="background-color: #f1f3f5">
+      <div class="container">
+        <div class="row">
+          <!-- Bölüm Başlığı -->
+          <div class="col-12 text-center mb-4">
+            <h2 class="display-4" style="font-weight: bold; color: #007bff">
+              Misafirlerimiz Ne Diyor?
+            </h2>
+            <p class="lead" style="font-size: 18px; color: #6c757d">
+              Sadece bizim sözümüze güvenmeyin, mutlu müşterilerimizin
+              yorumlarını okuyun!
+            </p>
+          </div>
+        </div>
+
+        <div class="row">
+          <!-- Yorum 1 -->
+          <div class="col-md-4 mb-4">
+            <div class="card shadow border-0 rounded">
+              <div class="card-body text-center">
+                <img
+                  src="../media/1.jpg"
+                  alt="Ali Kaya"
+                  class="rounded-circle mb-3"
+                  style="width: 100px; height: 100px; object-fit: cover"
+                />
+                <p class="card-text" style="font-size: 16px; color: #495057">
+                  "Konaklamamız kesinlikle harikaydı! Odalar temizdi, hizmet
+                  birinci sınıftı ve tesisleri çok sevdik. Kesinlikle tavsiye
+                  ederim!"
+                </p>
+                <div class="stars mb-2">
+                  <span class="fa fa-star checked"></span>
+                  <span class="fa fa-star checked"></span>
+                  <span class="fa fa-star checked"></span>
+                  <span class="fa fa-star checked"></span>
+                  <span class="fa fa-star"></span>
+                </div>
+                <h5
+                  class="card-title"
+                  style="font-weight: bold; color: #007bff"
+                >
+                  Ali Kaya
+                </h5>
+                <p class="card-subtitle text-muted">İş Seyahatçisi</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Yorum 2 -->
+          <div class="col-md-4 mb-4">
+            <div class="card shadow border-0 rounded">
+              <div class="card-body text-center">
+                <img
+                  src="../media/2.jpg"
+                  alt="Çağan Yılmaz"
+                  class="rounded-circle mb-3"
+                  style="width: 100px; height: 100px; object-fit: cover"
+                />
+                <p class="card-text" style="font-size: 16px; color: #495057">
+                  "Unutulmaz bir deneyim! Personel konaklamamızı keyifli hale
+                  getirmek için ellerinden gelenin en iyisini yaptı. Tekrar
+                  kesinlikle geleceğiz!"
+                </p>
+                <div class="stars mb-2">
+                  <span class="fa fa-star checked"></span>
+                  <span class="fa fa-star checked"></span>
+                  <span class="fa fa-star checked"></span>
+                  <span class="fa fa-star"></span>
+                  <span class="fa fa-star"></span>
+                </div>
+                <h5
+                  class="card-title"
+                  style="font-weight: bold; color: #007bff"
+                >
+                  Çağan Yılmaz
+                </h5>
+                <p class="card-subtitle text-muted">Aile Tatili</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Yorum 3 -->
+          <div class="col-md-4 mb-4">
+            <div class="card shadow border-0 rounded">
+              <div class="card-body text-center">
+                <img
+                  src="../media/3.jpg"
+                  alt="Zeynep Çelik"
+                  class="rounded-circle mb-3"
+                  style="width: 100px; height: 100px; object-fit: cover"
+                />
+                <p class="card-text" style="font-size: 16px; color: #495057">
+                  "Hafta sonu kaçamağı için mükemmel! Harika konum, muhteşem
+                  yemekler ve olağanüstü müşteri hizmetleri. Şiddetle tavsiye
+                  ederim."
+                </p>
+                <div class="stars mb-2">
+                  <span class="fa fa-star checked"></span>
+                  <span class="fa fa-star checked"></span>
+                  <span class="fa fa-star checked"></span>
+                  <span class="fa fa-star checked"></span>
+                  <span class="fa fa-star-half-o"></span>
+                </div>
+                <h5
+                  class="card-title"
+                  style="font-weight: bold; color: #007bff"
+                >
+                  Zeynep Çelik
+                </h5>
+                <p class="card-subtitle text-muted">Hafta Sonu Seyahatçisi</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Additional CSS Styling -->
+    <style>
+      #testimonials .card {
+        background-color: #ffffff;
+        border: none;
+        border-radius: 10px;
+      }
+
+      #testimonials .card-body {
+        padding: 30px;
+      }
+
+      #testimonials h5 {
+        font-size: 18px;
+        font-weight: bold;
+      }
+
+      #testimonials p {
+        font-size: 16px;
+        color: #495057;
+      }
+
+      #testimonials .card-subtitle {
+        font-size: 14px;
+        color: #6c757d;
+      }
+
+      /* Styling for stars */
+      .stars .fa {
+        color: #ffc107;
+      }
+
+      .stars .fa.checked {
+        color: #ffc107;
+      }
+
+      .stars .fa-half-o {
+        color: #ffc107;
+      }
+    </style>
+
+    <!-- Ekip Tanıtım Bölümü -->
+    <section id="teams" class="py-5">
+      <div class="container">
+        <div class="row">
+          <!-- Bölüm Başlığı -->
+          <div class="col-12 text-center mb-4">
+            <h2 class="display-4" style="font-weight: bold; color: #007bff">
+              Ekibimizle Tanışın
+            </h2>
+            <p class="lead" style="font-size: 18px; color: #6c757d">
+              Sizi özel hissettiren ekibimizle tanışın.
+            </p>
+          </div>
+        </div>
+
+        <div class="row">
+          <!-- Ekip Üyesi 1 -->
+          <div class="col-md-4 mb-4">
+            <div class="card shadow border-0 rounded text-center">
+              <img
+                src="../media/4.jpg"
+                alt="Sudenur Özdemir"
+                class="card-img-top rounded-circle"
+                style="
+                  width: 200px;
+                  height: 200px;
+                  object-fit: cover;
+                  margin: 20px auto;
+                "
+              />
+              <div class="card-body">
+                <h5
+                  class="card-title"
+                  style="font-weight: bold; color: #007bff"
+                >
+                  Sudenur Özdemir
+                </h5>
+                <p class="card-subtitle text-muted">
+                  Misafir İlişkileri Müdürü
+                </p>
+                <p class="card-text" style="font-size: 16px; color: #495057">
+                  Sudenur, kişiselleştirilmiş hizmet anlayışıyla her misafirin
+                  memnuniyetini sağlamak için çalışıyor.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Ekip Üyesi 2 -->
+          <div class="col-md-4 mb-4">
+            <div class="card shadow border-0 rounded text-center">
+              <img
+                src="../media/5.jpg"
+                alt="Murat Selahattin Güneş"
+                class="card-img-top rounded-circle"
+                style="
+                  width: 200px;
+                  height: 200px;
+                  object-fit: cover;
+                  margin: 20px auto;
+                "
+              />
+              <div class="card-body">
+                <h5
+                  class="card-title"
+                  style="font-weight: bold; color: #007bff"
+                >
+                  Murat Selahattin Güneş
+                </h5>
+                <p class="card-subtitle text-muted">Baş Aşçı</p>
+                <p class="card-text" style="font-size: 16px; color: #495057">
+                  Murat, yerel malzemeleri ustalıkla kullanarak lezzetli
+                  yemekler hazırlıyor ve misafirlerimizi büyülüyor.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Ekip Üyesi 3 -->
+          <div class="col-md-4 mb-4">
+            <div class="card shadow border-0 rounded text-center">
+              <img
+                src="../media/6.jpg"
+                alt="Fatih Karlı"
+                class="card-img-top rounded-circle"
+                style="
+                  width: 200px;
+                  height: 200px;
+                  object-fit: cover;
+                  margin: 20px auto;
+                "
+              />
+              <div class="card-body">
+                <h5
+                  class="card-title"
+                  style="font-weight: bold; color: #007bff"
+                >
+                  Fatih Karlı
+                </h5>
+                <p class="card-subtitle text-muted">Otel Müdürü</p>
+                <p class="card-text" style="font-size: 16px; color: #495057">
+                  Fatih, 10 yılı aşkın konaklama deneyimiyle misafirlerimize
+                  unutulmaz anlar yaşatıyor.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Additional CSS Styling -->
+    <style>
+      #teams .card {
+        background-color: #ffffff;
+        border: none;
+        border-radius: 10px;
+      }
+
+      #teams .card-body {
+        padding: 30px;
+      }
+
+      #teams .card-img-top {
+        margin-bottom: 20px;
+      }
+
+      #teams h5 {
+        font-size: 18px;
+        font-weight: bold;
+      }
+
+      #teams p {
+        font-size: 16px;
+        color: #495057;
+      }
+
+      #teams .card-subtitle {
+        font-size: 14px;
+        color: #6c757d;
+      }
+    </style>
+  </div>
+</div>
+{% endblock %}

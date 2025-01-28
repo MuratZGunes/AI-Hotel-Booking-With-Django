@@ -1,0 +1,405 @@
+{% extends 'hotel_booking/base.html' %}
+{% load static %}
+
+{% block title %}{{ room.name }} - Rezervasyon{% endblock %}
+
+{% block extra_css %}
+<link href='https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.10/main.min.css' rel='stylesheet' />
+<link href='https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@6.1.10/main.min.css' rel='stylesheet' />
+<link href='https://cdn.jsdelivr.net/npm/@fullcalendar/bootstrap5@6.1.10/main.min.css' rel='stylesheet' />
+<style>
+    .fc-day-disabled {
+        background-color: #dee2e6 !important;
+        cursor: not-allowed;
+        position: relative;
+    }
+    .fc-day-disabled:after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: repeating-linear-gradient(
+            45deg,
+            transparent,
+            transparent 10px,
+            rgba(200, 200, 200, 0.5) 10px,
+            rgba(200, 200, 200, 0.5) 20px
+        );
+    }
+    .fc-day-booked {
+        background-color: #e9ecef !important;
+        cursor: not-allowed;
+    }
+    .fc-day-available {
+        background-color: #ffffff !important;
+        cursor: pointer;
+    }
+    .fc-day-available:hover {
+        background-color: #f8f9fa !important;
+    }
+    .calendar-legend {
+        margin-top: 1rem;
+        padding: 1rem;
+        border-radius: 0.25rem;
+        background-color: #f8f9fa;
+    }
+    .legend-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 0.5rem;
+    }
+    .legend-color {
+        width: 20px;
+        height: 20px;
+        margin-right: 0.5rem;
+        border-radius: 0.25rem;
+    }
+    #calendar {
+        margin-top: 1rem;
+        min-height: 500px;
+        background-color: white;
+        padding: 1rem;
+        border-radius: 0.25rem;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    }
+    .fc .fc-toolbar-title {
+        font-size: 1.4em;
+        margin: 0;
+        padding: 5px 80px;
+        font-weight: bold;
+        color: #0d6efd;
+        position: relative;
+        display: inline-block;
+    }
+    .custom-calendar-nav {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 1.4em;
+        cursor: pointer;
+        color: #495057;
+        transition: all 0.2s ease;
+        padding: 10px 20px;
+        border-radius: 50px;
+        background-color: #fff;
+        border: 2px solid #dee2e6;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 50px;
+        height: 50px;
+    }
+    .custom-calendar-nav:hover {
+        color: #fff;
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+        box-shadow: 0 4px 8px rgba(13, 110, 253, 0.25);
+        transform: translateY(-52%) scale(1.05);
+    }
+    .custom-calendar-nav.prev {
+        left: -25px;
+    }
+    .custom-calendar-nav.next {
+        right: -25px;
+    }
+    .custom-calendar-nav i {
+        font-size: 1.2em;
+    }
+    .fc .fc-button {
+        padding: 0.5em 1em;
+        font-size: 1em;
+        font-weight: bold;
+        text-transform: uppercase;
+        transition: all 0.3s ease;
+    }
+    .fc .fc-today-button {
+        background-color: #198754 !important;
+        border-color: #198754 !important;
+    }
+    .fc .fc-today-button:hover {
+        background-color: #157347 !important;
+        border-color: #146c43 !important;
+    }
+    .fc .fc-daygrid-day {
+        min-height: 50px;
+    }
+    .fc .fc-daygrid-day.fc-day-today {
+        background-color: #e8f4ff !important;
+    }
+    .fc .fc-daygrid-day-number {
+        font-weight: bold;
+        padding: 8px;
+    }
+    .fc .fc-col-header-cell {
+        background-color: #f8f9fa;
+        padding: 10px 0;
+        font-weight: bold;
+    }
+    .fc .fc-day-disabled .fc-daygrid-day-number {
+        color: #adb5bd;
+        text-decoration: line-through;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <!-- Rezervasyon Formu -->
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0 rounded">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">{{ room.name }} Rezervasyonu</h3>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        {% for field in form %}
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.help_text %}
+                            <small class="form-text text-muted">{{ field.help_text }}</small>
+                            {% endif %}
+                            {% if field.errors %}
+                            <div class="alert alert-danger alert-dismissible fade show mt-2" role="alert">
+                                {% for error in field.errors %}
+                                <div>{{ error|escape }}</div>
+                                {% endfor %}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Kapat"></button>
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                        <div class="text-end">
+                            <button type="button" class="btn btn-secondary" id="resetFilters">Filtreleri Sıfırla</button>
+                            <button type="submit" class="btn btn-danger">Şimdi Rezervasyon Yapın</button>
+                        </div>
+
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
+                            <i class="fas fa-exclamation-circle me-2"></i>
+                            <strong>Üzgünüz!</strong>
+                            {% for error in form.non_field_errors %}
+                            <div>{{ error|escape }}</div>
+                            {% endfor %}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Kapat"></button>
+                        </div>
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+
+            <!-- Müsaitlik Takvimi -->
+            <div class="card shadow-sm border-0 rounded mt-4">
+                <div class="card-header bg-secondary text-white">
+                    <h4 class="mb-0">Müsaitlik Takvimi</h4>
+                </div>
+                <div class="card-body">
+                    <div id="calendar"></div>
+                    
+                    <!-- Takvim Açıklamaları -->
+                    <div class="calendar-legend">
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: #ffffff; border: 1px solid #dee2e6;"></div>
+                            <span>Müsait</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: #e9ecef;"></div>
+                            <span>Dolu</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Oda Detayları -->
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 rounded">
+                <div class="card-header bg-secondary text-white">
+                    <h4 class="mb-0">Oda Detayları</h4>
+                </div>
+                <div class="card-body">
+                    {% if room.image %}
+                    <img src="{{ room.image.url }}" class="card-img-top mb-3 rounded" alt="{{ room.name }}" style="height: 200px; object-fit: cover;">
+                    {% endif %}
+                    <h5 class="fw-bold text-primary">{{ room.name }}</h5>
+                    {% if avg_rating %}
+                    <div class="mb-2">
+                        {% for i in "12345"|make_list %}
+                        {% with number=forloop.counter|add:"-0.5" %}
+                        {% if forloop.counter <= avg_rating %}
+                        <i class="fas fa-star text-warning" style="font-size: 0.9rem;"></i>
+                        {% elif number <= avg_rating %}
+                        <i class="fas fa-star-half-alt text-warning" style="font-size: 0.9rem;"></i>
+                        {% else %}
+                        <i class="far fa-star text-warning" style="font-size: 0.9rem;"></i>
+                        {% endif %}
+                        {% endwith %}
+                        {% endfor %}
+                        <small class="text-muted ms-2">({{ avg_rating|floatformat:1 }})</small>
+                        <small class="text-muted ms-1">({{ reviews.count }} yorum)</small>
+                    </div>
+                    {% endif %}
+                    <p class="text-muted">{{ room.description }}</p>
+                    <ul class="list-unstyled mb-3">
+                        <li><i class="fas fa-door-closed text-success"></i> <strong>Tip:</strong> {{ room.get_room_type_display }}</li>
+                        <li><i class="fas fa-users text-success"></i> <strong>Kapasite:</strong> {{ room.capacity }} Kişilik</li>
+                        <li><i class="fas fa-tag text-success"></i> <strong>Fiyat:</strong> 
+                            {% if room.current_price != room.price %}
+                                {% if room.current_price < room.price %}
+                                    <span class="text-decoration-line-through text-muted">{{ room.price|floatformat:2 }} TL</span>
+                                    <span class="text-danger fw-bold">{{ room.current_price|floatformat:2 }} TL</span>
+                                {% else %}
+                                    <span>{{ room.current_price|floatformat:2 }} TL</span>
+                                {% endif %}
+                            {% else %}
+                                {{ room.price|floatformat:2 }} TL
+                            {% endif %}
+                            / Gecelik
+                        </li>
+                    </ul>
+                    <ul class="list-unstyled">
+                        {% if room.has_balcony %}
+                        <li><i class="fas fa-check-circle text-success"></i> Balkonlu</li>
+                        {% endif %}
+                        {% if room.has_sea_view %}
+                        <li><i class="fas fa-check-circle text-success"></i> Deniz Manzaralı</li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src='https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.10/index.global.min.js'></script>
+<script src='https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@6.1.10/index.global.min.js'></script>
+<script src='https://cdn.jsdelivr.net/npm/@fullcalendar/bootstrap5@6.1.10/index.global.min.js'></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Bugünün tarihini al
+    const today = new Date();
+    
+    // Takvimi başlat
+    var calendarEl = document.getElementById('calendar');
+    if (!calendarEl) {
+        console.error('Calendar element not found!');
+        return;
+    }
+
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+        themeSystem: 'bootstrap5',
+        initialView: 'dayGridMonth',
+        locale: 'tr',
+        firstDay: 1, // Pazartesi günü başlangıç
+        headerToolbar: {
+            left: 'today',
+            center: 'title',
+            right: ''
+        },
+        buttonText: {
+            today: 'Bugün'
+        },
+        dayHeaderFormat: { weekday: 'long' },
+        titleFormat: { year: 'numeric', month: 'long' },
+        selectable: true,
+        unselectAuto: false,
+        selectConstraint: {
+            start: today,
+            end: '2025-01-01'
+        },
+        events: {{ bookings_json|safe }},
+        dayCellDidMount: function(arg) {
+            // Geçmiş tarihleri devre dışı bırak
+            if (arg.date < today) {
+                arg.el.classList.add('fc-day-disabled');
+            }
+            // Dolu günleri işaretle
+            var events = calendar.getEvents();
+            var isBooked = events.some(function(event) {
+                return arg.date >= event.start && arg.date < event.end;
+            });
+            if (isBooked) {
+                arg.el.classList.add('fc-day-booked');
+            } else {
+                arg.el.classList.add('fc-day-available');
+            }
+        },
+        select: function(info) {
+            // Seçilen tarihleri forma yaz
+            checkInInput.value = info.startStr;
+            checkOutInput.value = info.endStr;
+        },
+        viewDidMount: function(view) {
+            const titleEl = calendarEl.querySelector('.fc-toolbar-title');
+            
+            // Önceki butonları temizle
+            const oldPrev = titleEl.querySelector('.custom-calendar-nav.prev');
+            const oldNext = titleEl.querySelector('.custom-calendar-nav.next');
+            if (oldPrev) oldPrev.remove();
+            if (oldNext) oldNext.remove();
+            
+            // Yeni butonları ekle
+            const prevButton = document.createElement('span');
+            prevButton.className = 'custom-calendar-nav prev';
+            prevButton.innerHTML = '<i class="fa-solid fa-chevron-left"></i>';
+            prevButton.title = 'Önceki Ay';
+            prevButton.addEventListener('click', () => calendar.prev());
+            
+            const nextButton = document.createElement('span');
+            nextButton.className = 'custom-calendar-nav next';
+            nextButton.innerHTML = '<i class="fa-solid fa-chevron-right"></i>';
+            nextButton.title = 'Sonraki Ay';
+            nextButton.addEventListener('click', () => calendar.next());
+            
+            titleEl.appendChild(prevButton);
+            titleEl.appendChild(nextButton);
+        }
+    });
+
+    calendar.render();
+
+    // Giriş tarihi input'u
+    const checkInInput = document.getElementById('{{ form.check_in.id_for_label }}');
+    // Çıkış tarihi input'u
+    const checkOutInput = document.getElementById('{{ form.check_out.id_for_label }}');
+
+    // Input'ları date tipine çevir
+    checkInInput.setAttribute('type', 'date');
+    checkOutInput.setAttribute('type', 'date');
+
+    // Minimum tarihleri ayarla
+    checkInInput.setAttribute('min', today.toISOString().split('T')[0]);
+
+    // Giriş tarihi değiştiğinde
+    checkInInput.addEventListener('change', function() {
+        const checkInDate = new Date(this.value);
+        // Çıkış tarihi için minimum tarihi, giriş tarihinin aynı günü olarak ayarla
+        const minCheckOutDate = checkInDate.toISOString().split('T')[0];
+        checkOutInput.setAttribute('min', minCheckOutDate);
+        
+        // Eğer çıkış tarihi, giriş tarihinden önceyse, çıkış tarihini temizle
+        if (checkOutInput.value && new Date(checkOutInput.value) < checkInDate) {
+            checkOutInput.value = '';
+        }
+    });
+
+    // Filtreleri sıfırlama butonuna tıklanınca çalışacak fonksiyon
+    document.getElementById('resetFilters').addEventListener('click', function() {
+        // Tüm form alanlarını temizle
+        const formElements = document.querySelectorAll('input, select, textarea');
+        formElements.forEach(element => {
+            element.value = '';
+        });
+        // Takvim seçimini temizle
+        calendar.unselect();
+    });
+});
+</script>
+{% endblock %}

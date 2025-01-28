@@ -1,0 +1,122 @@
+{% extends 'hotel_booking/admin/admin_base.html' %}
+
+{% block admin_content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Rezervasyon Raporu</h2>
+        <div class="btn-group">
+            <a href="{% url 'reports_dashboard' %}" class="btn btn-outline-primary">Kontrol Paneli</a>
+        </div>
+    </div>
+
+    <!-- Filtreler -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Başlangıç ​​Tarihi</label>
+                    <input type="date" name="start_date" class="form-control" value="{{ request.GET.start_date }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Bitiş Tarihi</label>
+                    <input type="date" name="end_date" class="form-control" value="{{ request.GET.end_date }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Durum</label>
+                    <select name="status" class="form-select">
+                        <option value="">Hepsi</option>
+                        <option value="pending" {% if request.GET.status == 'pending' %}selected{% endif %}>Askıda</option>
+                        <option value="confirmed" {% if request.GET.status == 'confirmed' %}selected{% endif %}>Onaylandı</option>
+                        <option value="cancelled" {% if request.GET.status == 'cancelled' %}selected{% endif %}>İptal edildi</option>
+                    </select>
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary">Filtre</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Filtre kartından sonra bunu ekleyin -->
+    <div class="mb-3">
+        <a href="{% url 'download_booking_report' %}?{{ request.GET.urlencode }}" class="btn btn-success">
+            <i class="fas fa-download"></i> PDF Raporunu İndir
+        </a>
+    </div>
+
+    <!-- Özet Kartları -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Toplam Rezervasyonlar</h5>
+                    <h2>{{ booking_count }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Toplam Gelir</h5>
+                    <h2>{{ total_revenue|floatformat:2 }} TL</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Ortalama Rezervasyon Değeri</h5>
+                    <h2>{{ average_revenue|floatformat:2 }} TL</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rezervasyon Tablosu -->
+    <div class="card">
+        <div class="card-header">
+            <h4>Rezervasyonlar</h4>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Misafir</th>
+                            <th>Oda</th>
+                            <th>Giriş</th>
+                            <th>Çıkış</th>
+                            <th>Toplam Maliyet</th>
+                            <th>Durum</th>
+                            <th>Oluşturuldu</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for booking in bookings %}
+                        <tr>
+                            <td>{{ booking.id }}</td>
+                            <td>{{ booking.user.get_full_name }}</td>
+                            <td>{{ booking.room.name }}</td>
+                            <td>{{ booking.check_in }}</td>
+                            <td>{{ booking.check_out }}</td>
+                            <td>{{ booking.total_cost }} TL</td>
+                            <td>
+                                <span class="badge {% if booking.status == 'confirmed' %}bg-success{% elif booking.status == 'pending' %}bg-warning{% else %}bg-danger{% endif %}">
+                                    {% if booking.status == 'confirmed' %}Onaylandı{% elif booking.status == 'pending' %}Beklemede{% else %}İptal Edildi{% endif %}
+                                </span>
+                            </td>
+                            <td>{{ booking.created_at|date:"Y-m-d H:i" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center">Rezervasyon bulunamadı.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,33 @@
+Sevgili {{ booking.user.get_full_name }},
+
+Rezervasyonunuz onaylandı. İşte detaylar:
+
+Oda Detayları:
+-------------
+Oda: {{ booking.room.name }}
+Tür: {{ booking.room.get_room_type_display }}
+Kat: {{ booking.room.floor }}
+
+Rezervasyon Detayları:
+---------------------
+Giriş Tarihi: {{ booking.check_in }}
+Çıkış Tarihi: {{ booking.check_out }}
+Toplam Tutar: {{ booking.total_cost }} TL
+{% if booking.promo_code %}Uygulanan Promosyon Kodu: {{ booking.promo_code.code }}{% endif %}
+
+İptal Politikası:
+----------------
+- Giriş tarihinden 24 saat önce ücretsiz iptal
+- Giriş tarihinden 12 saat önce %50 geri ödeme
+- Giriş tarihinden 12 saat içinde geri ödeme yapılmaz
+
+Rezervasyon detaylarını şu linkten görüntüleyebilirsiniz:
+{{ site_url }}{% url 'profile' %}
+
+Otelimizi tercih ettiğiniz için teşekkür ederiz!
+
+Saygılarımızla,  
+Otel Rezervasyon Ekibi
+
+Not: Bu, otomatik bir mesajdır, lütfen yanıtlamayınız.  
+© {{ year }} Otel Rezervasyon Sistemi. Tüm hakları saklıdır.

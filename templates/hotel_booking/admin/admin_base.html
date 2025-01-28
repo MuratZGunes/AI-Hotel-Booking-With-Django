@@ -1,0 +1,100 @@
+{% extends 'hotel_booking/base.html' %} {% block content %}
+<div class="container-fluid">
+  <div class="row">
+    <!-- Sidebar -->
+    <div
+      class="col-md-3 col-lg-2 d-md-block bg-dark sidebar collapse"
+      style="min-height: calc(100vh - 56px)"
+    >
+      <div class="position-sticky pt-3">
+        <ul class="nav flex-column">
+          <li class="nav-item">
+            <a
+              class="nav-link text-white {% if request.resolver_match.url_name == 'admin_home' %}active{% endif %}"
+              href="{% url 'admin_home' %}"
+            >
+              <i class="fas fa-tachometer-alt me-2"></i>
+              Kontrol Paneli
+            </a>
+          </li>
+          <li class="nav-item">
+            <a
+              class="nav-link text-white {% if request.resolver_match.url_name == 'manage_rooms' %}active{% endif %}"
+              href="{% url 'manage_rooms' %}"
+            >
+              <i class="fas fa-bed me-2"></i>
+              Otel Yönetimi
+            </a>
+          </li>
+          <li class="nav-item">
+            <a
+              class="nav-link text-white {% if request.resolver_match.url_name == 'manage_seasonal_prices' %}active{% endif %}"
+              href="{% url 'manage_seasonal_prices' %}"
+            >
+              <i class="fas fa-money-bill-wave me-2"></i>
+              Sezonluk Fiyatlar
+            </a>
+          </li>
+          <li class="nav-item">
+            <a
+              class="nav-link text-white {% if request.resolver_match.url_name == 'view_bookings' %}active{% endif %}"
+              href="{% url 'view_bookings' %}"
+            >
+              <i class="fas fa-calendar-check me-2"></i>
+              Rezervasyon Yönetimi
+            </a>
+          </li>
+          <li class="nav-item">
+            <a
+              class="nav-link text-white {% if request.resolver_match.url_name == 'reports_dashboard' %}active{% endif %}"
+              href="{% url 'reports_dashboard' %}"
+            >
+              <i class="fas fa-chart-bar me-2"></i>
+              Raporlar
+            </a>
+          </li>
+          <li class="nav-item">
+            <a
+              class="nav-link text-white {% if request.resolver_match.url_name == 'admin_contact_messages' %}active{% endif %}"
+              href="{% url 'admin_contact_messages' %}"
+            >
+              <i class="fas fa-envelope me-2"></i>
+              İletişim Mesajları
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link text-white" href="{% url 'index' %}">
+              <i class="fas fa-home me-2"></i>
+              Web Sitesine Git
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Main content -->
+    <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+      {% block admin_content %}{% endblock %}
+    </main>
+  </div>
+</div>
+
+<style>
+  .sidebar {
+    box-shadow: inset -1px 0 0 rgba(0, 0, 0, 0.1);
+  }
+
+  .sidebar .nav-link {
+    font-weight: 500;
+    padding: 0.75rem 1rem;
+  }
+
+  .sidebar .nav-link.active {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .sidebar .nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+</style>
+{% endblock %}

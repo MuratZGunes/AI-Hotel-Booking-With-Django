@@ -1,0 +1,129 @@
+{% extends 'hotel_booking/base.html' %} {% block content %}
+<div class="container mt-4 mb-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <!-- Başarı Mesajı -->
+      <div class="text-center mb-4">
+        <div class="display-1 text-success mb-3">
+          <i class="fas fa-check-circle"></i>
+        </div>
+        <h2 class="fw-bold text-success">Rezervasyonunuz Başarıyla Oluşturuldu!</h2>
+        <p class="text-muted">Rezervasyon detaylarınız aşağıda yer almaktadır.</p>
+      </div>
+
+      <!-- Rezervasyon Kartı -->
+      <div class="card shadow-lg border-0 rounded-3">
+        <div class="card-header bg-primary bg-gradient text-white py-3">
+          <div class="d-flex align-items-center">
+            <i class="fas fa-hotel fs-4 me-2"></i>
+            <h4 class="mb-0">Rezervasyon Detayları</h4>
+          </div>
+        </div>
+        
+        <div class="card-body p-4">
+          <!-- Oda Bilgileri -->
+          <div class="d-flex align-items-center mb-4 pb-3 border-bottom">
+            <div class="flex-shrink-0">
+              <div class="bg-light p-3 rounded-3">
+                <i class="fas fa-bed fs-2 text-primary"></i>
+              </div>
+            </div>
+            <div class="ms-3">
+              <h5 class="mb-1">{{ booking.room.name }}</h5>
+              <p class="text-muted mb-0">
+                <i class="fas fa-calendar-alt me-2"></i>
+                {{ booking.check_in|date:"d F Y" }} - {{ booking.check_out|date:"d F Y" }}
+              </p>
+            </div>
+          </div>
+
+          <!-- Günlük Fiyatlar -->
+          <div class="mb-4">
+            <h5 class="mb-3">
+              <i class="fas fa-tags text-primary me-2"></i>
+              Günlük Fiyat Detayları
+            </h5>
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead class="table-light">
+                  <tr>
+                    <th>Tarih</th>
+                    <th class="text-end">Fiyat</th>
+                    <th class="text-end">Durum</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for daily in daily_prices %}
+                  <tr>
+                    <td>{{ daily.date|date:"d F Y" }}</td>
+                    <td class="text-end">{{ daily.price|floatformat:2 }} TL</td>
+                    <td class="text-end">
+                      {% if daily.is_seasonal %}
+                        {% if daily.price < booking.room.price %}
+                          <span class="badge bg-success">Sezon İndirimi</span>
+                        {% else %}
+                          <span class="badge bg-info">Sezon Fiyatı</span>
+                        {% endif %}
+                      {% else %}
+                        <span class="badge bg-secondary">Standart</span>
+                      {% endif %}
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Fiyat Özeti -->
+          <div class="bg-light p-4 rounded-3">
+            {% if booking.promo_code %}
+            <div class="d-flex justify-content-between mb-2">
+              <span>Toplam (Sezonluk Fiyatlar)</span>
+              <span class="text-decoration-line-through text-muted">{{ original_total|floatformat:2 }} TL</span>
+            </div>
+            <div class="d-flex justify-content-between mb-3 text-success">
+              <span>
+                <i class="fas fa-ticket-alt me-1"></i>
+                Promosyon İndirimi ({{ booking.promo_code.code }})
+              </span>
+              <span>-{{ booking.promo_code.discount_percentage }}%</span>
+            </div>
+            {% endif %}
+            <div class="d-flex justify-content-between fw-bold fs-5">
+              <span>Ödenecek Tutar</span>
+              <span class="text-primary">{{ booking.total_cost|floatformat:2 }} TL</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Kart Alt Bilgi -->
+        <div class="card-footer bg-white p-4">
+          <div class="alert alert-info mb-4">
+            <div class="d-flex">
+              <div class="flex-shrink-0">
+                <i class="fas fa-info-circle fs-4 me-2"></i>
+              </div>
+              <div>
+                <h6 class="alert-heading mb-1">İptal Politikası</h6>
+                <p class="mb-0">
+                  İptal son tarihi: {{ booking.cancellation_deadline|date:"d F Y H:i" }}
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="d-flex justify-content-center gap-2">
+            <a href="{% url 'profile' %}" class="btn btn-primary">
+              <i class="fas fa-user me-2"></i>Rezervasyonlarım
+            </a>
+            <a href="{% url 'index' %}" class="btn btn-outline-primary">
+              <i class="fas fa-home me-2"></i>Ana Sayfa
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

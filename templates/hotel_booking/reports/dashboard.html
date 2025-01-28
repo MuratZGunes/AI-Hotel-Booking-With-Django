@@ -1,0 +1,119 @@
+{% extends 'hotel_booking/admin/admin_base.html' %}
+
+{% block admin_content %}
+<div class="container mt-4">
+     <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Raporlar Paneli</h2>
+        <div class="btn-group">
+            <a href="{% url 'revenue_report' %}" class="btn btn-outline-primary">Gelir Raporu</a>
+            <a href="{% url 'booking_report' %}" class="btn btn-outline-primary">Rezervasyon Raporu</a>
+        </div>
+        
+    </div>
+    
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Toplam Rezervasyonlar</h5>
+                    <h2>{{ total_bookings }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Toplam Gelir</h5>
+                    <h2>{{ total_revenue|floatformat:2 }} TL</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Ortalama Puan</h5>
+                    <h2>★ {{ avg_rating|floatformat:1 }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Doluluk Oranı</h5>
+                    <h2>{{ occupancy_rate|floatformat:1 }}%</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Aylık Gelir Tablosu -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h4>Aylık Gelir</h4>
+        </div>
+        <div class="card-body">
+            <canvas id="revenueChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Popüler Odalar -->
+    <div class="card">
+        <div class="card-header">
+            <h4>Popüler Odalar</h4>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Oda</th>
+                            <th>Rezervasyonlar</th>
+                            <th>Derecelendirme</th>
+                            <th>Kazanç</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for room in popular_rooms %}
+                        <tr>
+                            <td>{{ room.name }}</td>
+                            <td>{{ room.booking_count }}</td>
+                            <td>★ {{ room.avg_rating|floatformat:1 }}</td>
+                            <td>{{ room.total_revenue|default:0|floatformat:2 }} TL</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Monthly Revenue Chart
+    const ctx = document.getElementById('revenueChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: [{% for item in monthly_revenue %}'{{ item.month|date:"F Y" }}'{% if not forloop.last %},{% endif %}{% endfor %}],
+            datasets: [{
+                label: 'Kazanç',
+                data: [{% for item in monthly_revenue %}{{ item.revenue }}{% if not forloop.last %},{% endif %}{% endfor %}],
+                borderColor: '#007bff',
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Aylık'
+                }
+            }
+        }
+    });
+</script>
+{% endblock %} 

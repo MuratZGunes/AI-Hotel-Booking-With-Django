@@ -1,0 +1,261 @@
+{% extends 'hotel_booking/base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white py-3">
+                    <h3 class="mb-0 fs-4">{{ room.name }} için Değerlendirmeniz</h3>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        
+                        <div class="review-container bg-light p-4 rounded-3">
+                            <!-- Derecelendirme -->
+                            <div class="rating-section text-center mb-4">
+                                <div class="rating">
+                                    <input type="radio" name="rating" value="5" id="star5">
+                                    <label class="star" for="star5" data-rating="5">
+                                        <i class="fas fa-star"></i>
+                                    </label>
+                                    <input type="radio" name="rating" value="4" id="star4">
+                                    <label class="star" for="star4" data-rating="4">
+                                        <i class="fas fa-star"></i>
+                                    </label>
+                                    <input type="radio" name="rating" value="3" id="star3">
+                                    <label class="star" for="star3" data-rating="3">
+                                        <i class="fas fa-star"></i>
+                                    </label>
+                                    <input type="radio" name="rating" value="2" id="star2">
+                                    <label class="star" for="star2" data-rating="2">
+                                        <i class="fas fa-star"></i>
+                                    </label>
+                                    <input type="radio" name="rating" value="1" id="star1">
+                                    <label class="star" for="star1" data-rating="1">
+                                        <i class="fas fa-star"></i>
+                                    </label>
+                                </div>
+                                <div class="rating-text mt-2 text-muted">
+                                    Puanınızı seçmek için yıldızların üzerine gelin
+                                </div>
+                            </div>
+
+                            <!-- Yorum -->
+                            <div class="comment-section text-center">
+                                <h5 class="mb-3">Deneyiminizi Paylaşın</h5>
+                                <div class="comment-input-container mx-auto" style="max-width: 90%;">
+                                    {{ form.comment }}
+                                    <div class="form-text mt-2">
+                                        <i class="fas fa-lightbulb text-warning me-2"></i>
+                                        <span class="text-muted">İpucu: Odanın temizliği, konforu ve hizmet kalitesi hakkında deneyimlerinizi paylaşın</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {% if form.rating.errors or form.comment.errors %}
+                        <div class="alert alert-danger mt-3 p-2 rounded">
+                            {{ form.rating.errors }}
+                            {{ form.comment.errors }}
+                        </div>
+                        {% endif %}
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{% url 'room_details' room.id %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Geri Dön
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane me-2"></i>Yorumu Gönder
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .review-container {
+        border: 1px solid rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+    
+    .review-container:hover {
+        background-color: #fff !important;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    }
+
+    .rating {
+        display: flex;
+        flex-direction: row-reverse;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+    
+    .rating input[type="radio"] {
+        display: none;
+    }
+    
+    .rating .star {
+        font-size: 2.5rem;
+        cursor: pointer;
+        color: #ddd;
+        transition: color 0.2s ease;
+        padding: 0 0.2rem;
+    }
+    
+    .rating .star i {
+        transition: transform 0.2s ease;
+    }
+    
+    .rating .star:hover i {
+        transform: scale(1.2);
+    }
+    
+    .rating .star:hover,
+    .rating .star:hover ~ .star {
+        color: #ffc107;
+    }
+    
+    .rating .star.active,
+    .rating .star.active ~ .star {
+        color: #ffc107;
+    }
+    
+    .rating-text {
+        font-size: 0.9rem;
+        color: #6c757d;
+    }
+    
+    textarea.form-control {
+        min-height: 120px;
+        padding: 1rem;
+        border: 1px solid rgba(0,0,0,0.1);
+        border-radius: 10px;
+        resize: vertical;
+        font-size: 0.95rem;
+        line-height: 1.5;
+        background-color: #fff;
+        transition: all 0.3s ease;
+        width: 100%;
+        margin: 0 auto;
+    }
+    
+    textarea.form-control:focus {
+        border-color: #007bff;
+        box-shadow: none;
+        outline: none;
+    }
+    
+    textarea.form-control::placeholder {
+        color: #adb5bd;
+        font-style: italic;
+    }
+    
+    .form-text {
+        font-size: 0.85rem;
+        line-height: 1.4;
+    }
+    
+    .btn {
+        padding: 0.6rem 1.5rem;
+        font-weight: 500;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+    
+    .btn:hover {
+        transform: translateY(-2px);
+    }
+    
+    .btn-primary {
+        background: linear-gradient(45deg, #007bff, #0056b3);
+        border: none;
+    }
+    
+    .alert-danger {
+        background-color: #fff3f3;
+        border-color: #ffebeb;
+        color: #dc3545;
+    }
+
+    .comment-input-container {
+        margin: 0 auto;
+        text-align: center;
+    }
+
+    h5 {
+        color: #2c3e50;
+        font-weight: 500;
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const stars = document.querySelectorAll('.star');
+    let currentRating = 0;
+    
+    // Sayfa yüklendiğinde seçili olan yıldızı kontrol et
+    const checkedInput = document.querySelector('input[type="radio"]:checked');
+    if (checkedInput) {
+        currentRating = parseInt(checkedInput.value);
+        highlightStars(currentRating);
+    }
+    
+    function highlightStars(rating, isHover = false) {
+        stars.forEach((star) => {
+            const starRating = parseInt(star.getAttribute('data-rating'));
+            if (starRating <= rating) {
+                star.classList.add('active');
+            } else {
+                star.classList.remove('active');
+            }
+        });
+        
+        updateRatingText(rating, isHover);
+    }
+    
+    function updateRatingText(rating, isHover) {
+        const ratingText = document.querySelector('.rating-text');
+        if (rating > 0 && isHover) {
+            const messages = [
+                'Çok Kötü',
+                'Kötü',
+                'Orta',
+                'İyi',
+                'Mükemmel'
+            ];
+            ratingText.textContent = messages[rating - 1];
+        } else if (!isHover && currentRating > 0) {
+            ratingText.textContent = `${currentRating} yıldız verdiniz`;
+        } else {
+            ratingText.textContent = 'Puanınızı seçmek için yıldızların üzerine gelin';
+        }
+    }
+    
+    stars.forEach((star) => {
+        const rating = parseInt(star.getAttribute('data-rating'));
+        
+        star.addEventListener('mouseover', () => {
+            highlightStars(rating, true);
+        });
+        
+        star.addEventListener('mouseout', () => {
+            highlightStars(currentRating);
+        });
+        
+        star.addEventListener('click', () => {
+            currentRating = rating;
+            const radioInput = document.querySelector(`input[type="radio"][value="${rating}"]`);
+            if (radioInput) {
+                radioInput.checked = true;
+            }
+            highlightStars(currentRating);
+        });
+    });
+});
+</script>
+{% endblock %} 

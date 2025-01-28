@@ -1,0 +1,429 @@
+{% extends 'hotel_booking/admin/admin_base.html' %}
+
+{% block admin_content %}
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-12 col-xl-10">
+            <div class="card shadow-lg rounded-lg border-0">
+                <div class="card-header bg-gradient-dark text-white py-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h4 class="mb-1">Rezervasyon #{{ booking.id }}</h4>
+                            <p class="text-light mb-0 opacity-75">{{ booking.room.name }} - {{ booking.user.get_full_name }}</p>
+                        </div>
+                        <div class="action-buttons">
+                            {% if booking.status == 'pending' %}
+                            <button type="button"
+                                   class="btn btn-success btn-lg me-2 booking-action" 
+                                   data-booking-id="{{ booking.id }}"
+                                   data-action="approve"
+                                   data-bs-toggle="tooltip" 
+                                   title="Rezervasyonu Onayla">
+                                <i class="fas fa-check"></i> Onayla
+                            </button>
+                            <button type="button"
+                                   class="btn btn-danger btn-lg me-2 booking-action"
+                                   data-booking-id="{{ booking.id }}"
+                                   data-action="reject"
+                                   data-bs-toggle="tooltip" 
+                                   title="Rezervasyonu Reddet">
+                                <i class="fas fa-times"></i> Reddet
+                            </button>
+                            {% elif booking.status == 'confirmed' or booking.status == 'cancelled' %}
+                            <button type="button" 
+                                    class="btn btn-warning btn-lg me-2 booking-action"
+                                    data-booking-id="{{ booking.id }}"
+                                    data-action="pending"
+                                    data-bs-toggle="tooltip" 
+                                    title="Rezervasyonu Askıya Al">
+                                <i class="fas fa-pause"></i> Askıya Al
+                            </button>
+                            {% endif %}
+                            <a href="{% url 'view_bookings' %}" class="btn btn-light btn-lg">
+                                <i class="fas fa-arrow-left"></i> Geri Dön
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-4">
+                    <!-- Toast Bildirimleri -->
+                    <div class="toast-container position-fixed top-0 end-0 p-3">
+                        <div id="notification-toast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+                            <div class="toast-header">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong class="me-auto" id="toast-title">Bildirim</strong>
+                                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                            </div>
+                            <div class="toast-body" id="toast-message">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-4">
+                        <!-- Durum Kartı -->
+                        <div class="col-12">
+                            <div class="status-card p-4 rounded-lg bg-light mb-4">
+                                <div class="d-flex align-items-center">
+                                    <div class="status-icon me-3">
+                                        <i class="fas {% if booking.status == 'confirmed' %}fa-check-circle text-success{% elif booking.status == 'pending' %}fa-clock text-warning{% else %}fa-times-circle text-danger{% endif %} fa-2x"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="text-muted mb-1">Rezervasyon Durumu</h6>
+                                        <span class="badge {% if booking.status == 'confirmed' %}bg-success{% elif booking.status == 'pending' %}bg-warning{% else %}bg-danger{% endif %} p-2" id="status-badge-{{ booking.id }}">
+                                            {% if booking.status == 'confirmed' %}
+                                                Onaylandı
+                                            {% elif booking.status == 'pending' %}
+                                                Beklemede
+                                            {% else %}
+                                                İptal Edildi
+                                            {% endif %}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Detay Kartları -->
+                        <div class="col-md-6">
+                            <div class="info-card bg-white p-4 rounded-lg shadow-sm h-100">
+                                <div class="card-icon mb-3 text-primary">
+                                    <i class="fas fa-user fa-lg"></i>
+                                </div>
+                                <h6 class="text-muted mb-2">Misafir Bilgileri</h6>
+                                <p class="mb-1 fw-bold">{{ booking.user.get_full_name }}</p>
+                                <p class="text-muted mb-0">{{ booking.user.email }}</p>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="info-card bg-white p-4 rounded-lg shadow-sm h-100">
+                                <div class="card-icon mb-3 text-primary">
+                                    <i class="fas fa-bed fa-lg"></i>
+                                </div>
+                                <h6 class="text-muted mb-2">Oda Bilgileri</h6>
+                                <p class="mb-1 fw-bold">{{ booking.room.name }}</p>
+                                <p class="text-success fw-bold mb-0">{{ booking.total_cost }} TL</p>
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <div class="info-card bg-white p-4 rounded-lg shadow-sm">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="card-icon me-3 text-primary">
+                                        <i class="fas fa-calendar fa-lg"></i>
+                                    </div>
+                                    <h6 class="text-muted mb-0">Konaklama Tarihleri</h6>
+                                </div>
+                                <div class="row align-items-center">
+                                    <div class="col-md-5">
+                                        <div class="date-box p-3 bg-light rounded-lg">
+                                            <div class="d-flex align-items-center">
+                                                <i class="fas fa-calendar-check text-success me-2"></i>
+                                                <div>
+                                                    <small class="text-muted d-block">Giriş Tarihi</small>
+                                                    <span class="fw-bold fs-5">{{ booking.check_in }}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2 text-center py-3">
+                                        <i class="fas fa-arrow-right text-muted"></i>
+                                    </div>
+                                    <div class="col-md-5">
+                                        <div class="date-box p-3 bg-light rounded-lg">
+                                            <div class="d-flex align-items-center">
+                                                <i class="fas fa-calendar-times text-danger me-2"></i>
+                                                <div>
+                                                    <small class="text-muted d-block">Çıkış Tarihi</small>
+                                                    <span class="fw-bold fs-5">{{ booking.check_out }}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Toast nesnesini oluştur
+    const toastElement = document.getElementById('notification-toast');
+    const toast = new bootstrap.Toast(toastElement, {
+        animation: true,
+        autohide: true,
+        delay: 3000
+    });
+
+    // Bildirim gösterme fonksiyonu
+    function showNotification(message, type = 'success') {
+        const toastTitle = document.getElementById('toast-title');
+        const toastMessage = document.getElementById('toast-message');
+        const toastHeader = toastElement.querySelector('.toast-header');
+        
+        let icon = 'fa-check-circle';
+        let title = 'Başarılı';
+        let headerClass = 'bg-success text-white';
+        
+        if (type === 'error') {
+            icon = 'fa-exclamation-circle';
+            title = 'Hata';
+            headerClass = 'bg-danger text-white';
+        }
+
+        toastHeader.className = `toast-header ${headerClass}`;
+        toastHeader.innerHTML = `
+            <i class="fas ${icon} me-2"></i>
+            <strong class="me-auto">${title}</strong>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+        `;
+        
+        toastMessage.textContent = message;
+        toast.show();
+    }
+
+    // Tooltip'leri aktifleştir
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+    });
+
+    // Butonlara click event listener ekle
+    document.querySelectorAll('.booking-action').forEach(button => {
+        button.addEventListener('click', function() {
+            const bookingId = this.dataset.bookingId;
+            const action = this.dataset.action;
+            
+            fetch(`/hotel_booking/approve-booking/${bookingId}?action=${action}`, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // Durum badge'ini güncelle
+                    const statusBadge = document.getElementById(`status-badge-${bookingId}`);
+                    statusBadge.className = `badge ${data.new_status_class} p-2`;
+                    statusBadge.textContent = data.new_status_text;
+
+                    // Butonları güncelle
+                    const actionButtons = document.querySelector('.action-buttons');
+                    if (data.new_status === 'pending') {
+                        actionButtons.innerHTML = `
+                            <button type="button" class="btn btn-success me-2 booking-action" 
+                                    data-booking-id="${bookingId}" data-action="approve"
+                                    data-bs-toggle="tooltip" title="Rezervasyonu Onayla">
+                                <i class="fas fa-check"></i> Onayla
+                            </button>
+                            <button type="button" class="btn btn-danger me-2 booking-action"
+                                    data-booking-id="${bookingId}" data-action="reject"
+                                    data-bs-toggle="tooltip" title="Rezervasyonu Reddet">
+                                <i class="fas fa-times"></i> Reddet
+                            </button>
+                            <a href="{% url 'view_bookings' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Geri Dön
+                            </a>
+                        `;
+                    } else {
+                        actionButtons.innerHTML = `
+                            <button type="button" class="btn btn-warning me-2 booking-action"
+                                    data-booking-id="${bookingId}" data-action="pending"
+                                    data-bs-toggle="tooltip" title="Rezervasyonu Askıya Al">
+                                <i class="fas fa-pause"></i> Askıya Al
+                            </button>
+                            <a href="{% url 'view_bookings' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Geri Dön
+                            </a>
+                        `;
+                    }
+
+                    // İşlem başarılı olduktan sonra sayfayı yenile
+                    window.location.reload();
+
+                    showNotification(data.message, 'success');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('Bir hata oluştu. Lütfen tekrar deneyin.', 'error');
+            });
+        });
+    });
+});
+</script>
+
+<style>
+/* Mevcut stilleri koru ve yenilerini ekle */
+.bg-gradient-dark {
+    background: linear-gradient(145deg, #2c3e50, #3498db);
+}
+
+.status-card {
+    border: 1px solid rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+}
+
+.status-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.info-card {
+    border: 1px solid rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+}
+
+.info-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+}
+
+.card-icon {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    background: rgba(52, 152, 219, 0.1);
+    color: #3498db;
+}
+
+.btn {
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+    padding: 0.75rem 1.5rem;
+    text-transform: uppercase;
+    font-size: 0.875rem;
+}
+
+.btn-lg {
+    padding: 1rem 2rem;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 15px rgba(0,0,0,0.2);
+}
+
+.btn-success {
+    background: linear-gradient(145deg, #2ecc71, #27ae60);
+    border: none;
+}
+
+.btn-danger {
+    background: linear-gradient(145deg, #e74c3c, #c0392b);
+    border: none;
+}
+
+.btn-warning {
+    background: linear-gradient(145deg, #f1c40f, #f39c12);
+    border: none;
+    color: #000;
+}
+
+.btn-light {
+    background: linear-gradient(145deg, #ecf0f1, #bdc3c7);
+    border: none;
+    color: #2c3e50;
+}
+
+.badge {
+    padding: 0.75rem 1.25rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.toast {
+    background: white;
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+}
+
+.toast-header {
+    border-radius: 12px 12px 0 0;
+    padding: 1rem;
+}
+
+.toast-body {
+    padding: 1.25rem;
+    font-size: 1rem;
+}
+
+.card {
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+.card-header {
+    border-bottom: none;
+}
+
+.text-muted {
+    color: #6c757d !important;
+}
+
+.fw-bold {
+    font-weight: 600 !important;
+}
+
+/* Responsive düzenlemeler */
+@media (max-width: 768px) {
+    .action-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .action-buttons .btn {
+        width: 100%;
+        margin: 0 !important;
+    }
+
+    .card-header {
+        padding: 1.5rem;
+    }
+
+    .info-card {
+        margin-bottom: 1rem;
+    }
+}
+
+.date-box {
+    border: 1px solid rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+}
+
+.date-box:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    background-color: #f8f9fa !important;
+}
+
+.fs-5 {
+    font-size: 1.15rem !important;
+}
+
+@media (max-width: 768px) {
+    .date-box {
+        margin-bottom: 1rem;
+    }
+    
+    .col-md-2.text-center {
+        display: none;
+    }
+}
+</style>
+{% endblock %}

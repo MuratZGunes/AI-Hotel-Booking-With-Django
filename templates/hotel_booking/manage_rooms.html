@@ -1,0 +1,185 @@
+<!-- hotel_booking/templates/hotel_booking/manage_rooms.html -->
+{% extends 'hotel_booking/admin/admin_base.html' %}
+
+{% block admin_content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h2 class="h4 m-0 text-primary fw-bold">
+                            <i class="fas fa-bed me-2"></i>Odaları Yönet
+                        </h2>
+                        <a href="{% url 'add_room' %}" class="btn btn-success">
+                            <i class="fas fa-plus me-2"></i>Yeni Oda Ekle
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if rooms %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="text-center">Resim</th>
+                                    <th>İsim</th>
+                                    <th>Tip</th>
+                                    <th class="text-center">Kapasite</th>
+                                    <th class="text-end">Fiyat</th>
+                                    <th class="text-center">Kat</th>
+                                    <th class="text-center">Durum</th>
+                                    <th class="text-center">İşlemler</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for room in rooms %}
+                                <tr class="align-middle">
+                                    <td class="text-center">
+                                        {% if room.image %}
+                                        <img src="{{ room.image.url }}" alt="{{ room.name }}" 
+                                             class="rounded-3 shadow-sm" 
+                                             style="width: 60px; height: 60px; object-fit: cover;">
+                                        {% else %}
+                                        <div class="bg-light rounded-3 d-flex align-items-center justify-content-center" 
+                                             style="width: 60px; height: 60px;">
+                                            <i class="fas fa-image text-secondary"></i>
+                                        </div>
+                                        {% endif %}
+                                    </td>
+                                    <td class="fw-medium">{{ room.name }}</td>
+                                    <td>{{ room.get_room_type_display }}</td>
+                                    <td class="text-center">
+                                        <span class="badge bg-warning text-dark">
+                                            <i class="fas fa-user me-1"></i>{{ room.capacity }}
+                                        </span>
+                                    </td>
+                                    <td class="text-end fw-bold">{{ room.price }} TL</td>
+                                    <td class="text-center">{{ room.floor }}</td>
+                                    <td class="text-center">
+                                        <span class="badge {% if room.status == 'dolu' %}bg-danger{% else %}bg-success{% endif %} px-3 py-2">
+                                            {% if room.status == 'dolu' %}
+                                                <i class="fas fa-door-closed me-1"></i>Dolu
+                                            {% else %}
+                                                <i class="fas fa-door-open me-1"></i>Müsait
+                                            {% endif %}
+                                        </span>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="btn-group">
+                                            <a href="{% url 'edit_room' room.id %}" 
+                                               class="btn btn-sm btn-outline-primary" 
+                                               data-bs-toggle="tooltip" 
+                                               title="Düzenle">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a href="{% url 'room_details' room.id %}" 
+                                               class="btn btn-sm btn-outline-success" 
+                                               data-bs-toggle="tooltip" 
+                                               title="Detaylar">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <button type="button" 
+                                                    class="btn btn-sm btn-outline-danger" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#deleteModal{{ room.id }}"
+                                                    title="Sil">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+
+                                        <!-- Silme Modal -->
+                                        <div class="modal fade" id="deleteModal{{ room.id }}" tabindex="-1">
+                                            <div class="modal-dialog modal-dialog-centered">
+                                                <div class="modal-content">
+                                                    <div class="modal-header border-0">
+                                                        <h5 class="modal-title text-danger">
+                                                            <i class="fas fa-exclamation-triangle me-2"></i>Oda Sil
+                                                        </h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                    </div>
+                                                    <div class="modal-body text-center py-4">
+                                                        <p class="mb-0">
+                                                            <strong>"{{ room.name }}"</strong> odasını silmek istediğinizden emin misiniz?
+                                                        </p>
+                                                        <small class="text-muted">Bu işlem geri alınamaz.</small>
+                                                    </div>
+                                                    <div class="modal-footer border-0">
+                                                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">İptal</button>
+                                                        <form method="POST" action="{% url 'delete_room' room.id %}" class="d-inline">
+                                                            {% csrf_token %}
+                                                            <button type="submit" class="btn btn-danger">
+                                                                <i class="fas fa-trash me-2"></i>Sil
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-bed text-muted mb-3" style="font-size: 3rem;"></i>
+                        <h4 class="text-muted">Henüz Oda Eklenmemiş</h4>
+                        <p class="text-muted mb-4">Yeni bir oda ekleyerek başlayın</p>
+                        <a href="{% url 'add_room' %}" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>Yeni Oda Ekle
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .table th {
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 1rem;
+    }
+    
+    .table td {
+        font-size: 1.1rem;
+    }
+    
+    .badge {
+        font-weight: 500;
+        letter-spacing: 0.5px;
+        font-size: 0.95rem;
+    }
+
+    .btn-group .btn {
+        transition: all 0.2s;
+        font-size: 0.95rem;
+        padding: 0.4rem 0.8rem;
+    }
+    
+    .btn-group .btn:hover {
+        transform: translateY(-2px);
+    }
+    
+    .modal-title {
+        font-size: 1.3rem;
+    }
+    
+    .modal-body {
+        font-size: 1.1rem;
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+    })
+})
+</script>
+{% endblock %}

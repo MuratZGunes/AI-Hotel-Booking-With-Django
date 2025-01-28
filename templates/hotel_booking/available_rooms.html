@@ -1,0 +1,391 @@
+{% extends 'hotel_booking/base.html' %}
+{% load widget_tweaks %}
+{% block content %}
+
+<style>
+  .search-form {
+    transition: all 0.3s ease;
+  }
+  .search-form:hover {
+    transform: translateY(-5px);
+  }
+  
+  .room-card {
+    border: none;
+    border-radius: 15px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    margin-bottom: 2rem;
+    background: #fff;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+  }
+  
+  .room-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+  }
+  
+  .room-image-container {
+    position: relative;
+    height: 320px;
+    overflow: hidden;
+    background: #f8f9fa;
+    cursor: pointer;
+  }
+  
+  .room-image {
+    width: 100%;
+    height: 320px;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+  }
+  
+  .room-card:hover .room-image {
+    transform: scale(1.05);
+  }
+
+  .image-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(to bottom, 
+      rgba(0,0,0,0.2) 0%,
+      rgba(0,0,0,0) 20%,
+      rgba(0,0,0,0) 50%,
+      rgba(0,0,0,0.8) 100%
+    );
+    z-index: 1;
+  }
+  
+  .price-badge {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 0.8rem 1.5rem;
+    border-radius: 30px;
+    font-weight: bold;
+    font-size: 1.2rem;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    z-index: 2;
+  }
+
+  .price-badge .price-text {
+    color: #2c3e50;
+    font-weight: 700;
+  }
+  
+  .room-content {
+    position: relative;
+    margin-top: -50px;
+    padding: 1.2rem;
+    background: white;
+    border-radius: 15px 15px 0 0;
+    z-index: 2;
+  }
+  
+  .room-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: 0.8rem;
+    color: #2c3e50;
+  }
+  
+  .room-title a {
+    color: inherit;
+    text-decoration: none;
+  }
+  
+  .room-title a:hover {
+    color: #0056b3;
+  }
+  
+  .feature-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+  
+  .feature-badge {
+    background: #f8f9fa;
+    color: #2c3e50;
+    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  }
+  
+  .feature-badge:hover {
+    background: #e9ecef;
+    transform: translateY(-2px);
+  }
+  
+  .feature-badge i {
+    color: #0056b3;
+    font-size: 1rem;
+  }
+  
+  .rating-container {
+    margin: 1rem 0;
+    padding: 0.8rem 0;
+    border-top: 1px solid #eee;
+    border-bottom: 1px solid #eee;
+  }
+  
+  .rating-stars {
+    color: #ffc107;
+    font-size: 1.1rem;
+  }
+  
+  .rating-count {
+    color: #495057;
+    font-size: 0.95rem;
+    font-weight: 500;
+  }
+
+  .room-description {
+    color: #495057;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin-bottom: 1rem;
+  }
+  
+  .action-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+  
+  .btn-details {
+    padding: 0.5rem 1rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+    border-radius: 10px;
+  }
+  
+  .btn-details:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  }
+
+  .btn-details i {
+    font-size: 1.1rem;
+  }
+</style>
+
+<div class="container mt-4">
+  <!-- Search Form -->
+  <div class="search-form mb-5">
+    <div class="card shadow-lg border-0 rounded-4">
+      <div class="card-body p-4">
+        <h4 class="text-center mb-4 text-primary fw-bold">
+          <i class="fas fa-search me-2"></i>Mükemmel Odanızı Bulun
+        </h4>
+        
+        <form method="get" class="row g-3">
+          <!-- Tarih Seçimi -->
+          <div class="col-md-3">
+            <label for="{{ form.check_in.id_for_label }}" class="form-label">
+              <i class="fas fa-calendar-alt me-2"></i>Giriş Tarihi
+            </label>
+            {{ form.check_in|add_class:"form-control rounded-pill"|attr:"type:date" }}
+          </div>
+          <div class="col-md-3">
+            <label for="{{ form.check_out.id_for_label }}" class="form-label">
+              <i class="fas fa-calendar-alt me-2"></i>Çıkış Tarihi
+            </label>
+            {{ form.check_out|add_class:"form-control rounded-pill"|attr:"type:date" }}
+          </div>
+
+          <!-- Oda Tipi ve Kapasite -->
+          <div class="col-md-3">
+            <label for="{{ form.room_type.id_for_label }}" class="form-label">
+              <i class="fas fa-bed me-2"></i>Oda Tipi
+            </label>
+            {{ form.room_type|add_class:"form-select rounded-pill" }}
+          </div>
+          <div class="col-md-3">
+            <label for="{{ form.capacity.id_for_label }}" class="form-label">
+              <i class="fas fa-users me-2"></i>Kapasite
+            </label>
+            {{ form.capacity|add_class:"form-control rounded-pill" }}
+          </div>
+
+          <!-- Fiyat -->
+          <div class="col-md-4">
+            <label for="{{ form.max_price.id_for_label }}" class="form-label">
+              <i class="fas fa-money-bill-wave me-2"></i>Maksimum Fiyat
+            </label>
+            {{ form.max_price|add_class:"form-control rounded-pill" }}
+          </div>
+
+          <!-- Özellikler -->
+          <div class="col-md-8">
+            <div class="d-flex gap-4 h-100 align-items-center">
+              <div class="form-check form-switch">
+                {{ form.has_balcony|add_class:"form-check-input" }}
+                <label class="form-check-label ms-2" for="{{ form.has_balcony.id_for_label }}">
+                  <i class="fas fa-umbrella-beach me-2"></i>Balkonlu
+                </label>
+              </div>
+              <div class="form-check form-switch">
+                {{ form.has_sea_view|add_class:"form-check-input" }}
+                <label class="form-check-label ms-2" for="{{ form.has_sea_view.id_for_label }}">
+                  <i class="fas fa-water me-2"></i>Deniz Manzaralı
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Butonlar -->
+          <div class="col-12 text-center mt-4">
+            <a href="{% url 'available_rooms' %}" class="btn btn-outline-secondary rounded-pill me-2 px-4">
+              <i class="fas fa-undo me-2"></i>Filtreleri Temizle
+            </a>
+            <button type="submit" class="btn btn-primary rounded-pill px-4">
+              <i class="fas fa-search me-2"></i>Odayı Ara
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Room List -->
+  <div class="row g-4">
+    {% for room in rooms %}
+    <div class="col-xl-4 col-lg-4 col-md-6">
+      <div class="room-card">
+        <div class="room-image-container">
+          <a href="{% url 'room_details' room.id %}" class="text-decoration-none">
+            {% if room.image %}
+            <img src="{{ room.image.url }}" class="room-image" alt="{{ room.name }}">
+            {% endif %}
+            <div class="image-overlay"></div>
+          </a>
+          
+          <div class="price-badge">
+            {% if room.current_price != room.price %}
+              {% if room.current_price < room.price %}
+                <span class="text-decoration-line-through text-muted small">{{ room.price|floatformat:2 }} ₺</span>
+                <span class="price-text text-danger ms-2">{{ room.current_price|floatformat:2 }} ₺</span>
+              {% else %}
+                <span class="price-text">{{ room.current_price|floatformat:2 }} ₺</span>
+              {% endif %}
+            {% else %}
+              <span class="price-text">{{ room.price|floatformat:2 }} ₺</span>
+            {% endif %}
+            <small class="d-block text-muted mt-1">gecelik</small>
+          </div>
+        </div>
+        
+        <div class="room-content">
+          <h3 class="room-title">
+            <a href="{% url 'room_details' room.id %}">{{ room.name }}</a>
+          </h3>
+          
+          <div class="feature-badges">
+            {% if room.has_balcony %}
+            <span class="feature-badge">
+              <i class="fas fa-umbrella-beach"></i>
+              <span>Balkonlu</span>
+            </span>
+            {% endif %}
+            {% if room.has_sea_view %}
+            <span class="feature-badge">
+              <i class="fas fa-water"></i>
+              <span>Deniz Manzaralı</span>
+            </span>
+            {% endif %}
+            <span class="feature-badge">
+              <i class="fas fa-users"></i>
+              <span>{{ room.capacity }} Kişilik</span>
+            </span>
+          </div>
+          
+          {% if room.avg_rating %}
+          <div class="rating-container">
+            <div class="rating-stars">
+              {% for i in "12345"|make_list %}
+              {% with number=forloop.counter|add:"-0.5" %}
+              {% if forloop.counter <= room.avg_rating %}
+              <i class="fas fa-star"></i>
+              {% elif number <= room.avg_rating %}
+              <i class="fas fa-star-half-alt"></i>
+              {% else %}
+              <i class="far fa-star"></i>
+              {% endif %}
+              {% endwith %}
+              {% endfor %}
+              <span class="rating-count ms-2">
+                {{ room.avg_rating|floatformat:1 }} ({{ room.review_set.count }} değerlendirme)
+              </span>
+            </div>
+          </div>
+          {% endif %}
+          
+          <p class="room-description">{{ room.description|truncatewords:25 }}</p>
+          
+          <div class="action-buttons">
+            <a href="{% url 'room_details' room.id %}" class="btn btn-outline-primary btn-details">
+              <i class="fas fa-info-circle me-2"></i>Detayları İncele
+            </a>
+            {% if user.is_authenticated %}
+            <a href="{% url 'book_room' room.id %}" class="btn btn-danger btn-details">
+              <i class="fas fa-calendar-check me-2"></i>Hemen Rezerve Et
+            </a>
+            {% else %}
+            <a href="{% url 'user_login' %}" class="btn btn-danger btn-details">
+              <i class="fas fa-sign-in-alt me-2"></i>Giriş Yap & Rezerve Et
+            </a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+      <div class="text-center py-5">
+        <i class="fas fa-search fa-3x text-muted mb-3"></i>
+        <h4 class="text-muted">Üzgünüz!</h4>
+        <p class="text-muted mb-0">Aradığınız kriterlere uygun oda bulunamadı.<br>Lütfen farklı tarihler veya filtreler deneyiniz.</p>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Tarih Kontrol Script'i -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const checkInInput = document.getElementById('{{ form.check_in.id_for_label }}');
+    const checkOutInput = document.getElementById('{{ form.check_out.id_for_label }}');
+
+    const today = new Date().toISOString().split('T')[0];
+    checkInInput.setAttribute('min', today);
+    
+    checkInInput.addEventListener('change', function() {
+      const checkInDate = new Date(this.value);
+      checkInDate.setDate(checkInDate.getDate() + 1);
+      const minCheckOutDate = checkInDate.toISOString().split('T')[0];
+      
+      checkOutInput.setAttribute('min', minCheckOutDate);
+      
+      if (checkOutInput.value && new Date(checkOutInput.value) <= new Date(this.value)) {
+        checkOutInput.value = '';
+      }
+    });
+  });
+</script>
+
+{% endblock %}

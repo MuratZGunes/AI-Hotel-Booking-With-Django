@@ -1,0 +1,302 @@
+{% extends 'hotel_booking/admin/admin_base.html' %}
+
+{% block admin_content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Rezervasyonları Yönet</h2>
+        <a href="{% url 'delete_cancelled_bookings' %}" class="btn btn-danger" onclick="return confirm('İptal edilen tüm rezervasyonları silmek istediğinizden emin misiniz?')">
+            <i class="fas fa-trash me-2"></i>
+            İptal Edilen Rezervasyonları Sil
+        </a>
+    </div>
+    
+    <!-- Toast Bildirimleri -->
+    <div class="toast-container position-fixed top-0 end-0 p-3">
+        <div id="notification-toast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <i class="fas fa-info-circle me-2"></i>
+                <strong class="me-auto" id="toast-title">Bildirim</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body" id="toast-message">
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped" style="font-size: 1.05rem;">
+                    <thead>
+                        <tr class="align-middle">
+                            <th class="py-3">Oda</th>
+                            <th class="py-3">Misafir</th>
+                            <th class="py-3">Giriş</th>
+                            <th class="py-3">Çıkış</th>
+                            <th class="py-3">Toplam Maliyet</th>
+                            <th class="py-3">Durum</th>
+                            <th class="py-3">Eylemler</th>
+                            <th class="py-3">Detay</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for booking in bookings %}
+                        <tr class="align-middle" id="booking-row-{{ booking.id }}">
+                            <td class="py-3">{{ booking.room.name }}</td>
+                            <td class="py-3">{{ booking.user.get_full_name }}</td>
+                            <td class="py-3">{{ booking.check_in }}</td>
+                            <td class="py-3">{{ booking.check_out }}</td>
+                            <td class="py-3">{{ booking.total_cost }} TL</td>
+                            <td class="py-3">
+                                <span class="badge {% if booking.status == 'confirmed' %}bg-success{% elif booking.status == 'pending' %}bg-warning{% else %}bg-danger{% endif %} p-2" id="status-badge-{{ booking.id }}">
+                                    {% if booking.status == 'confirmed' %}
+                                        Onaylandı
+                                    {% elif booking.status == 'pending' %}
+                                        Beklemede
+                                    {% else %}
+                                        İptal Edildi
+                                    {% endif %}
+                                </span>
+                            </td>
+                            <td class="py-3">
+                                <div class="btn-group" id="action-buttons-{{ booking.id }}">
+                                    {% if booking.status == 'pending' %}
+                                    <button type="button"
+                                           class="btn btn-sm btn-success me-2 booking-action" 
+                                           data-booking-id="{{ booking.id }}"
+                                           data-action="approve"
+                                           data-bs-toggle="tooltip" 
+                                           title="">
+                                        <i class="fas fa-check"></i> Onayla
+                                    </button>
+                                    <button type="button"
+                                           class="btn btn-sm btn-danger booking-action"
+                                           data-booking-id="{{ booking.id }}"
+                                           data-action="reject"
+                                           data-bs-toggle="tooltip" 
+                                           title="">
+                                        <i class="fas fa-times"></i> Reddet
+                                    </button>
+                                    {% elif booking.status == 'confirmed' or booking.status == 'cancelled' %}
+                                    <button type="button" 
+                                            class="btn btn-sm btn-warning booking-action"
+                                            data-booking-id="{{ booking.id }}"
+                                            data-action="pending"
+                                            data-bs-toggle="tooltip" 
+                                            title="">
+                                        <i class="fas fa-pause"></i> Askıya Al
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td class="py-3">
+                                <a href="{% url 'approve_booking' booking.id %}" 
+                                   class="btn btn-sm btn-secondary"
+                                   data-bs-toggle="tooltip" 
+                                   title="">
+                                    <i class="fas fa-eye"></i> Detaylar
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tooltip'leri ve AJAX işlemlerini aktifleştirmek için gerekli JavaScript -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Toast nesnesini oluştur
+    const toastElement = document.getElementById('notification-toast');
+    const toast = new bootstrap.Toast(toastElement, {
+        animation: true,
+        autohide: true,
+        delay: 3000
+    });
+
+    // Bildirim gösterme fonksiyonu
+    function showNotification(message, type = 'success') {
+        const toastHeader = toastElement.querySelector('.toast-header');
+        const toastMessage = document.getElementById('toast-message');
+        
+        // Toast başlığını ve ikonunu ayarla
+        const config = {
+            success: { icon: 'fa-check-circle', title: 'Başarılı', class: 'bg-success' },
+            error: { icon: 'fa-exclamation-circle', title: 'Hata', class: 'bg-danger' }
+        }[type];
+        
+        toastHeader.className = `toast-header ${config.class} text-white`;
+        toastHeader.innerHTML = `
+            <i class="fas ${config.icon} me-2"></i>
+            <strong class="me-auto">${config.title}</strong>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+        `;
+        
+        toastMessage.textContent = message;
+        toast.show();
+    }
+
+    // Tooltip'leri aktifleştir
+    const tooltipList = [...document.querySelectorAll('[data-bs-toggle="tooltip"]')]
+        .map(el => new bootstrap.Tooltip(el));
+
+    // Booking işlemleri için AJAX fonksiyonu
+    function handleBookingAction(bookingId, action) {
+        fetch(`/hotel_booking/approve-booking/${bookingId}?action=${action}`, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                const statusBadge = document.getElementById(`status-badge-${bookingId}`);
+                statusBadge.className = `badge ${data.new_status_class} p-2`;
+                statusBadge.textContent = data.new_status_text;
+                showNotification(data.message, 'success');
+                // Sayfayı hemen yenile
+                window.location.reload();
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Bir hata oluştu. Lütfen tekrar deneyin.', 'error');
+        });
+    }
+
+    // Booking action butonlarına event listener ekle
+    document.querySelectorAll('.booking-action').forEach(button => {
+        button.addEventListener('click', () => {
+            handleBookingAction(button.dataset.bookingId, button.dataset.action);
+        });
+    });
+});
+</script>
+
+<style>
+/* Toast stilleri */
+.toast {
+    background-color: white;
+    border: none;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.toast-header {
+    border-bottom: none;
+    border-radius: 6px 6px 0 0;
+}
+
+.toast-header.bg-success,
+.toast-header.bg-danger {
+    color: white;
+}
+
+.toast-body {
+    padding: 1rem;
+    font-size: 0.95rem;
+}
+
+.btn-close-white {
+    filter: brightness(0) invert(1);
+}
+
+/* Yeni buton stilleri */
+.btn {
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 0.5rem 1rem;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.btn i {
+    margin-right: 6px;
+}
+
+.btn-success {
+    background: linear-gradient(145deg, #28a745, #218838);
+    border: none;
+}
+
+.btn-danger {
+    background: linear-gradient(145deg, #dc3545, #c82333);
+    border: none;
+}
+
+.btn-warning {
+    background: linear-gradient(145deg, #ffc107, #e0a800);
+    border: none;
+    color: #000;
+}
+
+.btn-warning:hover {
+    color: #000;
+}
+
+.btn-secondary {
+    background: linear-gradient(145deg, #6c757d, #5a6268);
+    border: none;
+}
+
+.btn-group {
+    box-shadow: none;
+}
+
+.btn-group .btn {
+    margin: 0 4px;
+}
+
+/* Badge stilleri */
+.badge {
+    padding: 8px 12px;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.bg-success {
+    background: linear-gradient(145deg, #28a745, #218838) !important;
+}
+
+.bg-warning {
+    background: linear-gradient(145deg, #ffc107, #e0a800) !important;
+}
+
+.bg-danger {
+    background: linear-gradient(145deg, #dc3545, #c82333) !important;
+}
+
+/* Tablo stilleri */
+.table {
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.table th {
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #dee2e6;
+    font-weight: 600;
+}
+
+.table td {
+    vertical-align: middle;
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+    background-color: rgba(0, 0, 0, 0.02);
+}
+</style>
+{% endblock %}

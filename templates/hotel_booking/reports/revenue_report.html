@@ -1,0 +1,140 @@
+{% extends 'hotel_booking/admin/admin_base.html' %}
+
+{% block admin_content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Gelir Raporu</h2>
+        <div class="btn-group">
+            <a href="{% url 'reports_dashboard' %}" class="btn btn-outline-primary">Kontrol Paneli</a>
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <a href="{% url 'download_revenue_report' %}" class="btn btn-success">
+            <i class="fas fa-download"></i> PDF Raporunu İndir
+        </a>
+    </div>
+    
+    
+
+    <!-- Aylık Gelir Tablosu -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h4>Aylık Gelir</h4>
+        </div>
+        <div class="card-body">
+            <canvas id="monthlyRevenueChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Oda Tipi Gelir -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h4>Oda Tipine Göre Gelir</h4>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-8">
+                    <canvas id="roomTypeChart"></canvas>
+                </div>
+                <div class="col-md-4">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Oda Tipi</th>
+                                    <th>Gelir</th>
+                                    <th>Rezervasyonlar</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in room_type_revenue %}
+                                <tr>
+                                    <td>{{ item.room__room_type }}</td>
+                                    <td>{{ item.revenue|floatformat:2 }} TL</td>
+                                    <td>{{ item.booking_count }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Monthly Revenue Chart
+    const monthlyCtx = document.getElementById('monthlyRevenueChart').getContext('2d');
+    new Chart(monthlyCtx, {
+        type: 'line',
+        data: {
+            labels: [{% for item in monthly_revenue %}'{{ item.month|date:"F Y" }}'{% if not forloop.last %},{% endif %}{% endfor %}],
+            datasets: [{
+                label: 'Gelir',
+                data: [{% for item in monthly_revenue %}{{ item.revenue }}{% if not forloop.last %},{% endif %}{% endfor %}],
+                borderColor: '#007bff',
+                tension: 0.1
+            }, {
+                label: 'Rezervasyonlar',
+                data: [{% for item in monthly_revenue %}{{ item.booking_count }}{% if not forloop.last %},{% endif %}{% endfor %}],
+                borderColor: '#28a745',
+                tension: 0.1,
+                yAxisID: 'rezervasyonlar'
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    position: 'left',
+                    title: {
+                        display: true,
+                        text: 'Gelir (TL)'
+                    }
+                },
+                bookings: {
+                    beginAtZero: true,
+                    position: 'right',
+                    title: {
+                        display: true,
+                        text: 'Rezervasyon Sayısı'
+                    }
+                }
+            }
+        }
+    });
+
+    // Room Type Revenue Chart
+    const roomTypeCtx = document.getElementById('roomTypeChart').getContext('2d');
+    new Chart(roomTypeCtx, {
+        type: 'pie',
+        data: {
+            labels: [{% for item in room_type_revenue %}'{{ item.room__room_type }}'{% if not forloop.last %},{% endif %}{% endfor %}],
+            datasets: [{
+                data: [{% for item in room_type_revenue %}{{ item.revenue }}{% if not forloop.last %},{% endif %}{% endfor %}],
+                backgroundColor: [
+                    '#007bff',
+                    '#28a745',
+                    '#dc3545',
+                    '#ffc107',
+                    '#17a2b8'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Oda Tipine Göre Gelir Dağılımı'
+                }
+            }
+        }
+    });
+</script>
+{% endblock %} 

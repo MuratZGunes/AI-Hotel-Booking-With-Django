@@ -1,0 +1,45 @@
+{% extends 'hotel_booking/emails/base_email.html' %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+    <h2 style="color: #333; text-align: center;">Rezervasyon Onayı</h2>
+    
+    <div style="background: #f8f9fa; padding: 20px; border-radius: 5px; margin: 20px 0;">
+        <h3 style="color: #28a745;">Merhaba {{ booking.user.get_full_name }}!</h3>
+        <p>Rezervasyonunuz onaylanmıştır. İşte detaylar:</p>
+        
+        <div style="margin: 20px 0;">
+            <h4 style="color: #007bff;">Oda Detayları</h4>
+            <p><strong>Oda:</strong> {{ booking.room.name }}</p>
+            <p><strong>Tür:</strong> {{ booking.room.get_room_type_display }}</p>
+            <p><strong>Kat:</strong> {{ booking.room.floor }}</p>
+        </div>
+        
+        <div style="margin: 20px 0;">
+            <h4 style="color: #007bff;">Rezervasyon Detayları</h4>
+            <p><strong>Giriş Tarihi:</strong> {{ booking.check_in }}</p>
+            <p><strong>Çıkış Tarihi:</strong> {{ booking.check_out }}</p>
+            <p><strong>Toplam Tutar:</strong> {{ booking.total_cost }} TL</p>
+            {% if booking.promo_code %}
+            <p><strong>Uygulanan Promosyon Kodu:</strong> {{ booking.promo_code.code }}</p>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div style="margin: 20px 0;">
+        <h4 style="color: #dc3545;">İptal Politikası</h4>
+        <ul>
+            <li>Giriş tarihinden 24 saat önce ücretsiz iptal</li>
+            <li>Giriş tarihinden 12 saat önce %50 geri ödeme</li>
+            <li>Giriş tarihinden 12 saat içinde geri ödeme yapılmaz</li>
+        </ul>
+    </div>
+    
+    <div style="text-align: center; margin-top: 30px;">
+        <a href="{{ site_url }}{% url 'profile' %}" 
+           style="background: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
+            Rezervasyon Detaylarını Görüntüle
+        </a>
+    </div>
+</div>
+{% endblock %} 

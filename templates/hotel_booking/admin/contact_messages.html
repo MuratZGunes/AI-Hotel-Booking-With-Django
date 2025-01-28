@@ -1,0 +1,321 @@
+{% extends 'hotel_booking/admin/admin_base.html' %}
+
+{% block admin_content %}
+
+<div class="container-fluid py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>İletişim Mesajları</h2>
+    <div class="btn-group">
+      <button class="btn btn-outline-primary" id="markAllRead">
+        <i class="fas fa-check-double me-2"></i>Seçilenleri Okundu İşaretle
+      </button>
+      <button class="btn btn-outline-danger" id="deleteSelected">
+        <i class="fas fa-trash me-2"></i>Seçilenleri Sil
+      </button>
+    </div>
+  </div>
+
+  <div class="card shadow">
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th>
+                <input
+                  type="checkbox"
+                  id="selectAll"
+                  class="form-check-input"
+                />
+              </th>
+              <th>Durum</th>
+              <th>Gönderen</th>
+              <th>E-posta</th>
+              <th>Konu</th>
+              <th>Mesaj</th>
+              <th>Tarih</th>
+              <th>İşlemler</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for message in messages %}
+            <tr {% if not message.is_read %}class="table-light" {% endif %}>
+              <td>
+                <input
+                  type="checkbox"
+                  class="form-check-input message-select"
+                  value="{{ message.id }}"
+                />
+              </td>
+              <td>
+                {% if message.is_read %}
+                <span class="badge bg-success">Okundu</span>
+                {% else %}
+                <span class="badge bg-warning">Yeni</span>
+                {% endif %}
+              </td>
+              <td>
+                <button
+                  class="btn p-0 text-dark"
+                  style="text-decoration: none; background: none; border: none;"
+                  data-bs-toggle="modal"
+                  data-bs-target="#messageModal{{ message.id }}"
+                >
+                  {{ message.name }}
+                </button>
+              </td>
+              <td>{{ message.email }}</td>
+              <td>
+                <button
+                  class="btn p-0 text-dark"
+                  style="text-decoration: none; background: none; border: none;"
+                  data-bs-toggle="modal"
+                  data-bs-target="#messageModal{{ message.id }}"
+                >
+                  {{ message.subject }}
+                </button>
+              </td>
+              <td>
+                <button
+                  class="btn p-0 text-dark"
+                  style="text-decoration: none; background: none; border: none;"
+                  data-bs-toggle="modal"
+                  data-bs-target="#messageModal{{ message.id }}"
+                >
+                  <div class="text-truncate" style="max-width: 200px">
+                    {{ message.message|truncatechars:50 }}
+                  </div>
+                </button>
+              </td>
+              <td>{{ message.created_at|date:"d F Y H:i" }}</td>
+              <td>
+                <div class="btn-group">
+                  {% if not message.is_read %}
+                  <button
+                    class="btn btn-sm btn-outline-primary mark-read-single"
+                    data-id="{{ message.id }}"
+                    title="Okundu olarak işaretle"
+                  >
+                    <i class="fas fa-check"></i>
+                  </button>
+                  {% endif %}
+                  <button
+                    class="btn btn-sm btn-outline-danger delete-message"
+                    data-id="{{ message.id }}"
+                    title="Mesajı sil"
+                  >
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+
+            <!-- Mesaj Detay Modal -->
+            <div
+              class="modal fade"
+              id="messageModal{{ message.id }}"
+              tabindex="-1"
+            >
+              <div class="modal-dialog">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title">{{ message.subject }}</h5>
+                    <button
+                      type="button"
+                      class="btn-close"
+                      data-bs-dismiss="modal"
+                    ></button>
+                  </div>
+                  <div class="modal-body">
+                    <div class="mb-3">
+                      <strong>Gönderen:</strong>
+                      <span>{{ message.name }}</span>
+                    </div>
+                    <div class="mb-3">
+                      <strong>E-posta:</strong>
+                      <span>{{ message.email }}</span>
+                    </div>
+                    <div class="mb-3">
+                      <strong>Tarih:</strong>
+                      <span>{{ message.created_at|date:"d F Y H:i" }}</span>
+                    </div>
+                    <div class="mb-3">
+                      <strong>Konu:</strong>
+                      <span>{{ message.subject }}</span>
+                    </div>
+                    <hr />
+                    <div class="message-content">
+                      {{ message.message|linebreaks }}
+                    </div>
+                  </div>
+                  <div class="modal-footer">
+                    <a
+                      href="mailto:{{ message.email }}"
+                      class="btn btn-primary"
+                    >
+                      <i class="fas fa-reply me-2"></i>Yanıtla
+                    </a>
+                    <button
+                      type="button"
+                      class="btn btn-secondary"
+                      data-bs-dismiss="modal"
+                    >
+                      Kapat
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            {% empty %}
+            <tr>
+              <td colspan="8" class="text-center py-4">
+                <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                <p class="text-muted">Henüz mesaj bulunmuyor.</p>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    // CSRF token alma fonksiyonu
+    function getCSRFToken() {
+      return document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+    }
+
+    // Tümünü seç/kaldır
+    const selectAllCheckbox = document.getElementById("selectAll");
+    const messageCheckboxes = document.querySelectorAll(".message-select");
+
+    selectAllCheckbox.addEventListener("change", function () {
+      messageCheckboxes.forEach((checkbox) => {
+        checkbox.checked = this.checked;
+      });
+    });
+
+    // Tümünü okundu işaretle
+    document
+      .getElementById("markAllRead")
+      .addEventListener("click", function () {
+        const selectedIds = Array.from(messageCheckboxes)
+          .filter((cb) => cb.checked)
+          .map((cb) => cb.value);
+
+        if (selectedIds.length === 0) {
+          showToast("Lütfen en az bir mesaj seçin");
+          return;
+        }
+
+        fetch("/hotel_booking/admin/contact-messages/mark-read/", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": getCSRFToken(),
+          },
+          body: JSON.stringify({ ids: selectedIds }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.success) {
+              location.reload();
+            }
+          })
+          .catch((error) => {
+            showToast("Bir hata oluştu: " + error.message);
+          });
+      });
+
+    // Seçilenleri sil butonu
+    document
+      .getElementById("deleteSelected")
+      .addEventListener("click", function () {
+        const selectedIds = Array.from(messageCheckboxes)
+          .filter((cb) => cb.checked)
+          .map((cb) => cb.value);
+
+        if (selectedIds.length === 0) {
+          showToast("Lütfen en az bir mesaj seçin");
+          return;
+        }
+
+        if (confirm("Seçili mesajları silmek istediğinizden emin misiniz?")) {
+          fetch("/hotel_booking/admin/contact-messages/delete/", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-CSRFToken": getCSRFToken(),
+            },
+            body: JSON.stringify({ ids: selectedIds }),
+          })
+            .then((response) => response.json())
+            .then((data) => {
+              if (data.success) {
+                location.reload();
+              }
+            })
+            .catch((error) => {
+              showToast("Bir hata oluştu: " + error.message);
+            });
+        }
+      });
+
+    // Tekli silme butonları
+    document.querySelectorAll(".delete-message").forEach((button) => {
+      button.addEventListener("click", function () {
+        const messageId = this.getAttribute("data-id");
+
+        if (confirm("Bu mesajı silmek istediğinizden emin misiniz?")) {
+          fetch("/hotel_booking/admin/contact-messages/delete/", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-CSRFToken": getCSRFToken(),
+            },
+            body: JSON.stringify({ ids: [messageId] }),
+          })
+            .then((response) => response.json())
+            .then((data) => {
+              if (data.success) {
+                location.reload();
+              }
+            })
+            .catch((error) => {
+              showToast("Bir hata oluştu: " + error.message);
+            });
+        }
+      });
+    });
+
+    // Tekli okundu işaretleme butonları
+    document.querySelectorAll(".mark-read-single").forEach((button) => {
+      button.addEventListener("click", function () {
+        const messageId = this.getAttribute("data-id");
+
+        fetch("/hotel_booking/admin/contact-messages/mark-read/", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": getCSRFToken(),
+          },
+          body: JSON.stringify({ ids: [messageId] }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.success) {
+              location.reload();
+            }
+          })
+          .catch((error) => {
+            showToast("Bir hata oluştu: " + error.message);
+          });
+      });
+    });
+  });
+</script>
+
+{% csrf_token %} {% endblock %}
