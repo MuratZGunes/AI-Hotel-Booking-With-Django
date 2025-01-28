@@ -1,5 +1,5 @@
 # Yapay Zekâ ile Otel Rezervasyonu
-[![English](https://img.shields.io/badge/Language-English-blue)](https://github.com/MuratZGunes/HotelBookingWithAi/new/main/README.md)
+[![English](https://img.shields.io/badge/Language-English-blue)](https://github.com/MuratZGunes/HotelBookingWithAi/blob/main/README.md)
 ## Proje Hakkında
 
 HotelBookingWithAI, otel rezervasyon sürecini hızlandırmak, kolaylaştırmak ve kişiselleştirilmiş bir deneyim sunmak için geliştirilmiş yenilikçi bir web uygulamasıdır. Django framework'ü üzerine inşa edilen bu sistem, kullanıcı dostu bir arayüz aracılığıyla otel odalarını görüntüleme, rezervasyon işlemlerini yönetme ve kullanıcı profillerini düzenleme işlevlerini etkin bir şekilde sunar.
